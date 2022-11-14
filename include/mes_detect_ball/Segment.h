@@ -5,7 +5,7 @@
 #include <tuple>
 #include <Eigen/Eigen>
 
-std::tuple<Eigen::MatrixXd, Eigen::VectorXd, uint32_t> Segment(const Eigen::MatrixXd &data)
+std::tuple<Eigen::MatrixXd, Eigen::VectorXd, uint32_t> Segment(const Eigen::MatrixXd &data, int section)
 {
   const auto &x = data.col(0);
   const auto &y = data.col(1);

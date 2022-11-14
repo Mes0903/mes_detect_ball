@@ -37,6 +37,7 @@ int main()
 
   puts("reading Y");
   Eigen::VectorXd train_Y = readLabel("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/train_Y.txt", 1507);
+
   puts("reading Y2");
   Eigen::VectorXd test_Y = readLabel("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/test_Y.txt", 1529);
 

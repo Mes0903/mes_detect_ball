@@ -5,8 +5,8 @@
 void Normalizer::fit(const Eigen::MatrixXd &data)
 {
   const int COLS = data.cols();
-  data_min = VectorXd::Zero(COLS);
-  data_mm = VectorXd::Zero(COLS);
+  data_min = Eigen::MatrixXdVectorXd::Zero(COLS);
+  data_mm = Eigen::MatrixXdVectorXd::Zero(COLS);
 
   for (int i = 0; i < COLS; ++i)
   {
