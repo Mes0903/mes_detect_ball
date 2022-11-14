@@ -11,7 +11,6 @@ std::pair<Eigen::VectorXd, double>
 weak_learner::fit(const Eigen::MatrixXd &train_X, const Eigen::MatrixXd &train_Y,
                   const Eigen::MatrixXd &train_weight, uint32_t Iterations)
 {
-  uint32_t N = train_X.rows();
   uint32_t D = train_X.cols();
 
   static std::random_device rd;

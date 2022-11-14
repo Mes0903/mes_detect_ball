@@ -3,71 +3,62 @@
 #define __SEGMENT
 
 #include <tuple>
+#include <vector>
 #include <Eigen/Eigen>
 
-std::tuple<Eigen::MatrixXd, Eigen::VectorXd, uint32_t> Segment(const Eigen::MatrixXd &data, int section)
+std::vector<Eigen::MatrixXd> do_section_segment(const Eigen::MatrixXd &section) // section is 720*2
 {
-  const auto &x = data.col(0);
-  const auto &y = data.col(1);
+  const auto &x = section.col(0);
+  const auto &y = section.col(1);
   const double threshold = 0.1;
+  std::vector<Eigen::MatrixXd> seg_vec; // a seg is a n*2 matrix.
 
-  uint32_t Si = 1, Sn = 1; // The point number in the n segment.
-  std::vector<int> n0ind;
-  int n0;
-  for (int i = 0; i < x.size(); ++i)
+  std::vector<int> valid_index; // valid point index
+  for (int i = 0; i < 720; ++i)
   {
     if ((x(i) != 0 || y(i) != 0) && (std::isnormal(x(i)) && std::isnormal(y(i))))
-      n0ind.emplace_back(i);
+      valid_index.emplace_back(i);
   }
-  n0 = n0ind[0];
+  int n0 = valid_index.size();
+  std::cout << "n0 = " << n0 << std::endl;
 
-  int max_Si = 0;
-  int ROW = 0, COL = 0;
-  for (int i = 1; i < n0; ++i)
+  std::vector<int> seg_index_list; // 某個 Seg 的 index list
+  for (int i = 1; i < n0; ++i)     // 遍歷所有 valid index
   {
-    if (std::sqrt(std::pow(x(n0ind[i]) - x(n0ind[i - 1]), 2) + std::pow(y(n0ind[i]) - y(n0ind[i - 1]), 2)) < threshold)
+    std::cout << "x(valid_index[i]) = " << x(valid_index[i]) << " x(valid_index[i-1]) = " << x(valid_index[i - 1]) << '\n'
+              << "y(valid_index[i]) = " << y(valid_index[i - 1]) << " y(valid_index[i-1]) = " << y(valid_index[i - 1]) << '\n'
+              << "std::pow(x(valid_index[i]) - x(valid_index[i - 1]), 2) + std::pow(y(valid_index[i]) - y(valid_index[i - 1]), 2) = \n"
+              << std::pow(x(valid_index[i]) - x(valid_index[i - 1]), 2) + std::pow(y(valid_index[i]) - y(valid_index[i - 1]), 2) << '\n'
+              << "std::sqrt(std::pow(x(valid_index[i]) - x(valid_index[i - 1]), 2) + std::pow(y(valid_index[i]) - y(valid_index[i - 1]), 2)) =\n"
+              << std::sqrt(std::pow(x(valid_index[i]) - x(valid_index[i - 1]), 2) + std::pow(y(valid_index[i]) - y(valid_index[i - 1]), 2));
+
+    if (std::sqrt(std::pow(x(valid_index[i]) - x(valid_index[i - 1]), 2) + std::pow(y(valid_index[i]) - y(valid_index[i - 1]), 2)) < threshold)
     {
-      ++ROW;
+      // 將 valid index 插入 seg list 內
+      puts("A");
+      seg_index_list.emplace_back(valid_index[i - 1]);
     }
     else
     {
-      ++COL;
-      if (ROW > max_Si) // find the maximum num of segment point
-        max_Si = ROW;
+      puts("B");
+      int node_num = seg_index_list.size(); // 這個 segment 總共有幾個點
+      if (node_num != 0)
+      {
+        Eigen::MatrixXd tmp_seg(node_num, 2);
+        std::cout << "node_num = " << node_num << '\n';
+        for (int j = 0; j < node_num; ++j)
+        {
+          tmp_seg(j, 0) = x(seg_index_list[j]);
+          tmp_seg(j, 1) = y(seg_index_list[j]);
+        }
+
+        seg_vec.push_back(std::move(tmp_seg));
+        seg_index_list.clear();
+      }
     }
   }
 
-  Eigen::MatrixXd Seg(max_Si, COL);
-  for (int i = 1; i < n0; ++i)
-  {
-    if (std::sqrt(std::pow(x(n0ind[i]) - x(n0ind[i - 1]), 2) + std::pow(y(n0ind[i]) - y(n0ind[i - 1]), 2)) < threshold)
-    {
-      ++Si;
-      Seg(Si, Sn) = n0in(i);
-    }
-    else
-    {
-      ++Sn;
-      Si = 1;
-      Seg(Si, Sn) = n0in(i);
-    }
-  }
-
-  Eigen::VectorXd Si_n = Eigen::VectorXd::Zero(Sn);
-  for (int j = 0; j < Sn; ++j)
-  {
-    int k = 0;
-    for (int i = 0; i < Seg.cols(); ++i)
-    {
-      const auto &ci = Seg.cols(i);
-      if (cj(i) != 0)
-        ++k;
-    }
-
-    Si_n(j) = k;
-  }
-
-  return { Seg, Si_n, S_n }
+  return seg_vec;
 }
 
 #endif

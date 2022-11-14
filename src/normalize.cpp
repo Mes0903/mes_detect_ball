@@ -5,8 +5,8 @@
 void Normalizer::fit(const Eigen::MatrixXd &data)
 {
   const int COLS = data.cols();
-  data_min = Eigen::MatrixXdVectorXd::Zero(COLS);
-  data_mm = Eigen::MatrixXdVectorXd::Zero(COLS);
+  data_min = Eigen::VectorXd::Zero(COLS);
+  data_mm = Eigen::VectorXd::Zero(COLS);
 
   for (int i = 0; i < COLS; ++i)
   {
@@ -21,6 +21,7 @@ Eigen::MatrixXd Normalizer::transform(const Eigen::MatrixXd &data)
 {
   Eigen::MatrixXd tf_matrix(data.rows(), data.cols());
 
+  const int COLS = data.cols();
   for (int i = 0; i < COLS; ++i)
     tf_matrix.col(i) = (data.col(i).array() - data_min(i)) / data_mm(i);
 
