@@ -3,15 +3,11 @@
 #include "load_matrix.h"
 #include "make_feature.h"
 #include "weak_learner.h"
+#include "normalize.h"
 
 #include <iostream>
 #include <Eigen/Dense>
 #include <limits>
-
-//#define FIT
-//#define SAVE
-
-#define LOAD
 
 int main()
 {

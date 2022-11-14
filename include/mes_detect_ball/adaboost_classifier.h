@@ -1,3 +1,4 @@
+#pragma once
 #ifndef __ADABOOST_CLASSIFIER
 #define __ADABOOST_CLASSIFIER
 

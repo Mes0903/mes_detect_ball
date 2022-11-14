@@ -1,3 +1,4 @@
+#pragma once
 #ifndef __LOAD_MATRIX_H__
 #define __LOAD_MATRIX_H__
 

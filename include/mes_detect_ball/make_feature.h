@@ -1,3 +1,4 @@
+#pragma once
 #ifndef __MAKE_FEATURES
 #define __MAKE_FEATURES
 
