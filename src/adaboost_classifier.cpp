@@ -9,6 +9,8 @@
 void Adaboost::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y)
 {
   Eigen::VectorXd w = Eigen::VectorXd::Ones(train_X.rows());
+  std::cout << train_X.rows() << ' ' << train_Y.rows() << '\n'
+            << train_X.cols() << ' ' << train_Y.cols() << std::endl;
 
   for (int i = 0; i < M; ++i)
   {

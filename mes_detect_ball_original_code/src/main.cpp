@@ -3,15 +3,12 @@
 #include "load_matrix.h"
 #include "make_feature.h"
 #include "weak_learner.h"
+#include "segment.h"
+#include "normalize.h"
 
 #include <iostream>
 #include <Eigen/Dense>
 #include <limits>
-
-//#define FIT
-//#define SAVE
-
-#define LOAD
 
 int main()
 {
@@ -33,16 +30,19 @@ int main()
   std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
   /* fitting */
-  puts("reading X");
-  Eigen::MatrixXd train_X = readDataSet("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/train_X.txt", 1507, 5);
+  puts("read training data...");
+  Eigen::MatrixXd train_data = readDataSet("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/xy_data.txt", 660240, 2); // file, row, col
+  puts("transforming training data to feature...");
+  Eigen::MatrixXd Seg_train_data = transform_to_feature(train_data);
 
-  puts("reading X2");
-  Eigen::MatrixXd test_X = readDataSet("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/test_X.txt", 1529, 5);
+  // puts("reading X2");
+  // Eigen::MatrixXd test_data = readDataSet("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/test_X.txt", 1529, 5);
 
-  puts("reading Y");
-  Eigen::VectorXd train_Y = readLabel("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/train_Y.txt", 1507);
-  puts("reading Y2");
-  Eigen::VectorXd test_Y = readLabel("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/test_Y.txt", 1529);
+  puts("reading training label...");
+  Eigen::VectorXd train_label = readLabel("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/xy_label.txt", 2248); // file, segment num(row)
+
+  // puts("reading Y2");
+  // Eigen::VectorXd test_Y = readLabel("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/test_Y.txt", 1529);
 
   if (case_t_l == 1)
   {
@@ -50,14 +50,14 @@ int main()
     {
       puts("start tranning");
       Adaboost A(100);
-      A.fit(train_X, train_Y);
+      A.fit(Seg_train_data, train_label);
 
-      /* prediction */
+      // prediction
       puts("make prediction");
-      Eigen::VectorXd pred_Y = A.predict(test_X);
+      Eigen::VectorXd pred_Y = A.predict(Seg_train_data);
 
       puts("cal confusion matrix");
-      Eigen::MatrixXd confusion = cal_confusion_matrix(test_Y, pred_Y);
+      Eigen::MatrixXd confusion = cal_confusion_matrix(train_label, pred_Y);
 
       std::cout << confusion << '\n';
       if (case_save == 1)
@@ -70,12 +70,12 @@ int main()
     puts("start loading weight data");
     A.load_weight("/home/mes/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_weight.txt");
 
-    /* prediction */
+    // prediction
     puts("make prediction");
-    Eigen::VectorXd pred_Y = A.predict(test_X);
+    Eigen::VectorXd pred_Y = A.predict(Seg_train_data);
 
     puts("cal confusion matrix");
-    Eigen::MatrixXd confusion = cal_confusion_matrix(test_Y, pred_Y);
+    Eigen::MatrixXd confusion = cal_confusion_matrix(train_label, pred_Y);
 
     std::cout << confusion << '\n';
   }

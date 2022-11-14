@@ -34,7 +34,6 @@ int main()
   Eigen::MatrixXd train_data = readDataSet("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/xy_data.txt", 660240, 2); // file, row, col
   puts("transforming training data to feature...");
   Eigen::MatrixXd Seg_train_data = transform_to_feature(train_data);
-  std::cout << "Seg_train_data r c = " << Seg_train_data.rows() << " " << Seg_train_data.cols() << '\n';
 
   // puts("reading X2");
   // Eigen::MatrixXd test_data = readDataSet("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/test_X.txt", 1529, 5);
@@ -51,11 +50,11 @@ int main()
     {
       puts("start tranning");
       Adaboost A(100);
-      A.fit(train_data, train_label);
+      A.fit(Seg_train_data, train_label);
 
       // prediction
       puts("make prediction");
-      Eigen::VectorXd pred_Y = A.predict(train_data);
+      Eigen::VectorXd pred_Y = A.predict(Seg_train_data);
 
       puts("cal confusion matrix");
       Eigen::MatrixXd confusion = cal_confusion_matrix(train_label, pred_Y);
@@ -73,7 +72,7 @@ int main()
 
     // prediction
     puts("make prediction");
-    Eigen::VectorXd pred_Y = A.predict(train_data);
+    Eigen::VectorXd pred_Y = A.predict(Seg_train_data);
 
     puts("cal confusion matrix");
     Eigen::MatrixXd confusion = cal_confusion_matrix(train_label, pred_Y);

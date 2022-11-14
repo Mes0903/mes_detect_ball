@@ -13,7 +13,7 @@ void transform_to_xy(Eigen::MatrixXd &data, const uint32_t ROWS)
 {
   for (uint32_t i = 0; i < ROWS; i++)
   {
-    const double theta = data(i, 0);
+    const double theta = M_PI * data(i, 0) / 180;
     const double r = data(i, 1);
 
     data(i, 0) = r * std::cos(theta); // x

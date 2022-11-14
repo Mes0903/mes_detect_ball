@@ -1,10 +1,20 @@
+#pragma once
 #ifndef __MAKE_FEATURES
 #define __MAKE_FEATURES
+
+#include "segment.h"
 
 #include <vector>
 #include <utility>
 #include <cmath>
 #include <Eigen/Eigen>
+
+Eigen::MatrixXd AppendRow(const Eigen::MatrixXd &A, const Eigen::VectorXd &B)
+{
+  Eigen::MatrixXd D(A.rows() + 1, A.cols());
+  D << A, B.transpose();
+  return D;
+}
 
 uint32_t cal_point(const Eigen::MatrixXd &data)
 {
@@ -47,6 +57,51 @@ std::pair<double, double> cal_cr(const Eigen::MatrixXd &data)
   auto circularity = ((radius - ((xc - x.array()).square() + (yc - y.array()).square()).sqrt()).square()).sum();
 
   return {radius, circularity};
+}
+
+Eigen::VectorXd make_feature(const Eigen::MatrixXd &Seg)
+{
+  Eigen::VectorXd feature = Eigen::VectorXd::Zero(5);
+  feature(0) = cal_point(Seg);
+  feature(1) = cal_std(Seg);
+  feature(2) = cal_width(Seg);
+  const auto [r, cir] = cal_cr(Seg);
+  feature(3) = r, feature(4) = cir;
+
+  return feature;
+}
+
+Eigen::MatrixXd transform_to_feature(const Eigen::MatrixXd &xy_data)
+{
+  Eigen::MatrixXd feature_data = Eigen::MatrixXd::Zero(1, 5);
+  bool empty_flag = true;
+
+  int SECTION = xy_data.rows() / 720;
+
+  for (int i = 0; i < 60; ++i)
+  {
+    int n = 1 + 15 * i;
+    int begin_index = 720 * (n - 1);
+    Eigen::MatrixXd section_data = xy_data.block(begin_index, 0, 720, 2);            // section_data is 720*2
+    std::vector<Eigen::MatrixXd> section_seg_vec = do_section_segment(section_data); // 那一秒切出來的所有 segment
+
+    for (const auto &Seg : section_seg_vec)
+    {
+      Eigen::VectorXd single_feature = make_feature(Seg);
+
+      if (empty_flag)
+      {
+        feature_data += single_feature.transpose();
+        empty_flag = false;
+      }
+      else
+      {
+        feature_data = AppendRow(feature_data, single_feature);
+      }
+    }
+  }
+
+  return feature_data;
 }
 
 #endif
