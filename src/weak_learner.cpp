@@ -87,7 +87,7 @@ Eigen::VectorXd weak_learner::get_label(const Eigen::MatrixXd &test_X)
 void weak_learner::store_weight(std::ofstream &outfile)
 {
   uint32_t N = w.size();
-
+  // std::cout << "N = " << N << std::endl;
   outfile << w0 << '\n';
   for (uint32_t i = 0; i < N; ++i)
     outfile << w(i) << " \n"[i == N - 1];
@@ -95,7 +95,7 @@ void weak_learner::store_weight(std::ofstream &outfile)
 
 void weak_learner::load_weight(std::ifstream &infile, std::stringstream &stream)
 {
-  int N = 5;
+  int N = 2;
   w = Eigen::VectorXd::Zero(N);
   std::string line;
 

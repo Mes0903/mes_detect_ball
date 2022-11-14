@@ -21,7 +21,8 @@ std::vector<Eigen::MatrixXd> do_section_segment(const Eigen::MatrixXd &section) 
   }
   int validsize = valid_index.size();
 
-  std::vector<int> seg_index_list;    // 某個 Seg 的 index list
+  std::vector<int> seg_index_list; // 某個 Seg 的 index list
+
   for (int i = 1; i < validsize; ++i) // 遍歷所有 valid index
   {
     if (std::sqrt(std::pow(x(valid_index[i - 1]) - x(valid_index[i]), 2) + std::pow(y(valid_index[i - 1]) - y(valid_index[i]), 2)) < threshold)
