@@ -120,7 +120,7 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 
 int main(int argc, char **argv)
 {
-  A.load_weight("/home/mes/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_box_weight.txt", normalizer);
+  A.load_weight("/home/hypharos/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_box_weight.txt", normalizer);
 
   ros::init(argc, argv, "Detect_Box_Node");
 

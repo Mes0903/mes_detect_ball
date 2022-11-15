@@ -27,16 +27,16 @@ int main()
 
   /* fitting */
   puts("read training data...");
-  Eigen::MatrixXd train_X = readDataSet("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/box_train_xn.txt", 2888, 5); // file, row, col
+  Eigen::MatrixXd train_X = readDataSet("/home/hypharos/catkin_ws/src/mes_detect_ball/include/dataset/box_train_xn.txt", 2888, 5); // file, row, col
 
   puts("reading testing data...");
-  Eigen::MatrixXd test_X = readDataSet("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/box_test_xn.txt", 1238, 5);
+  Eigen::MatrixXd test_X = readDataSet("/home/hypharos/catkin_ws/src/mes_detect_ball/include/dataset/box_test_xn.txt", 1238, 5);
 
   puts("reading training label...");
-  Eigen::VectorXd train_Y = readLabel("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/box_train_yn.txt", 2888); // file, segment num(row)
+  Eigen::VectorXd train_Y = readLabel("/home/hypharos/catkin_ws/src/mes_detect_ball/include/dataset/box_train_yn.txt", 2888); // file, segment num(row)
 
   puts("reading testing label...");
-  Eigen::VectorXd test_Y = readLabel("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/box_test_yn.txt", 1238);
+  Eigen::VectorXd test_Y = readLabel("/home/hypharos/catkin_ws/src/mes_detect_ball/include/dataset/box_test_yn.txt", 1238);
 
   Normalizer normalizer;
 
@@ -61,13 +61,13 @@ int main()
       Eigen::MatrixXd confusion = cal_confusion_matrix(test_Y, pred_Y);
       std::cout << confusion << '\n';
 
-      A.store_weight("/home/mes/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_box_weight.txt", confusion(0, 0), confusion(1, 0), normalizer);
+      A.store_weight("/home/hypharos/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_box_weight.txt", confusion(0, 0), confusion(1, 0), normalizer);
     }
   }
   else
   {
     Adaboost A;
-    A.load_weight("/home/mes/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_box_weight.txt", normalizer);
+    A.load_weight("/home/hypharos/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_box_weight.txt", normalizer);
 
     train_X = normalizer.transform(train_X);
     test_X = normalizer.transform(test_X);
