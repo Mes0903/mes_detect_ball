@@ -9,8 +9,7 @@ endif()
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 find_package(Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
@@ -26,7 +25,7 @@ catkin_package(
   DEPENDS EIGEN3
 )
 
-set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/include/mes_detect_ball)
+set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/include/header)
 set(DATA_SETS ${PROJECT_SOURCE_DIR}/include/dataset)
 
 include_directories(
@@ -36,11 +35,47 @@ include_directories(
   ${DATA_SETS}
 )
 
-aux_source_directory(./src DIR_SRCS)
-add_executable(Detect_node ${DIR_SRCS})
+aux_source_directory(./lib_def LIB_DEF)
+add_executable(Training_Ball
+  ./src/training_ball.cpp
+  ${LIB_DEF}
+)
 
 target_link_libraries(
-  Detect_node
+  Training_Ball
+  ${catkin_LIBRARIES}
+  ${Eigen3_LIBRARIES}
+)
+
+add_executable(Detect_Ball
+  ./src/main.cpp
+  ${LIB_DEF}
+)
+
+target_link_libraries(
+  Detect_Ball
+  ${catkin_LIBRARIES}
+  ${Eigen3_LIBRARIES}
+)
+
+add_executable(Training_BOX
+  ./src/training_box.cpp
+  ${LIB_DEF}
+)
+
+target_link_libraries(
+  Detect_Ball
+  ${catkin_LIBRARIES}
+  ${Eigen3_LIBRARIES}
+)
+
+add_executable(Detect_BOX
+  ./src/detect_box.cpp
+  ${LIB_DEF}
+)
+
+target_link_libraries(
+  Detect_BOX
   ${catkin_LIBRARIES}
   ${Eigen3_LIBRARIES}
 )

@@ -95,7 +95,7 @@ void weak_learner::store_weight(std::ofstream &outfile)
 
 void weak_learner::load_weight(std::ifstream &infile, std::stringstream &stream)
 {
-  int N = 2;
+  int N = w.size();
   w = Eigen::VectorXd::Zero(N);
   std::string line;
 

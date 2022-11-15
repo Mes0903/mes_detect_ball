@@ -71,8 +71,9 @@ Eigen::VectorXd make_feature(const Eigen::MatrixXd &Seg)
   return feature;
 }
 
-Eigen::MatrixXd transform_to_feature(const Eigen::MatrixXd &xy_data)
+std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> transform_to_feature(const Eigen::MatrixXd &xy_data)
 {
+  std::vector<Eigen::MatrixXd> segment_data;
   Eigen::MatrixXd feature_data = Eigen::MatrixXd::Zero(1, 5);
   bool empty_flag = true;
 
@@ -99,9 +100,12 @@ Eigen::MatrixXd transform_to_feature(const Eigen::MatrixXd &xy_data)
         feature_data = AppendRow(feature_data, single_feature);
       }
     }
+    segment_data.insert(segment_data.end(),
+                        std::make_move_iterator(section_seg_vec.begin()),
+                        std::make_move_iterator(section_seg_vec.end()));
   }
 
-  return feature_data;
+  return {feature_data, segment_data};
 }
 
 #endif
