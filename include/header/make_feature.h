@@ -77,7 +77,7 @@ std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> transform_to_feature(co
   Eigen::MatrixXd feature_data = Eigen::MatrixXd::Zero(1, 5);
   bool empty_flag = true;
 
-  int SECTION = xy_data.rows() / 720;
+  [[maybe_unused]] int SECTION = xy_data.rows() / 720;
 
   for (int i = 0; i < 60; ++i)
   {
