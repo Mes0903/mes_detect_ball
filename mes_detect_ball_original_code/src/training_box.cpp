@@ -17,16 +17,16 @@ int main()
 
   /* fitting */
   puts("read training data...");
-  Eigen::MatrixXd train_X = readDataSet("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/box_train_x.txt", 2062, 5); // file, row, col
+  Eigen::MatrixXd train_X = readDataSet("/home/hypharos/catkin_ws/src/mes_detect_ball/include/dataset/box_train_x.txt", 2062, 5); // file, row, col
 
   puts("reading testing data...");
-  Eigen::MatrixXd test_X = readDataSet("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/box_test_x.txt", 2064, 5);
+  Eigen::MatrixXd test_X = readDataSet("/home/hypharos/catkin_ws/src/mes_detect_ball/include/dataset/box_test_x.txt", 2064, 5);
 
   puts("reading training label...");
-  Eigen::VectorXd train_Y = readLabel("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/box_train_y.txt", 2062); // file, segment num(row)
+  Eigen::VectorXd train_Y = readLabel("/home/hypharos/catkin_ws/src/mes_detect_ball/include/dataset/box_train_y.txt", 2062); // file, segment num(row)
 
   puts("reading testing label...");
-  Eigen::VectorXd test_Y = readLabel("/home/mes/catkin_ws/src/mes_detect_ball/include/dataset/box_test_y.txt", 2064);
+  Eigen::VectorXd test_Y = readLabel("/home/hypharos/catkin_ws/src/mes_detect_ball/include/dataset/box_test_y.txt", 2064);
 
   for (int i = 0; i < sample; ++i)
   {
@@ -42,6 +42,6 @@ int main()
     Eigen::MatrixXd confusion = cal_confusion_matrix(train_Y, pred_Y);
 
     std::cout << confusion << '\n';
-    A.store_weight("/home/mes/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_box_weight.txt", confusion(0, 0), confusion(1, 0));
+    A.store_weight("/home/hypharos/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_box_weight.txt", confusion(0, 0), confusion(1, 0));
   }
 }

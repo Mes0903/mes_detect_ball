@@ -19,6 +19,8 @@
 
 // this is detect ball.cpp
 
+Adaboost A;
+
 visualization_msgs::Marker marker;
 uint32_t shape = visualization_msgs::Marker::CYLINDER;
 ros::Publisher marker_pub;
@@ -96,8 +98,6 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 
   // 切分段
   const auto [feature_matrix, segment_vec] = transform_to_feature(data); // segment_vec is std::vector<Eigen::MatrixXd>
-  Adaboost A;
-  A.load_weight("/home/mes/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_ball_weight.txt");
 
   // prediction
   puts("make prediction");
@@ -119,6 +119,8 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 
 int main(int argc, char **argv)
 {
+  A.load_weight("/home/hypharos/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_ball_weight.txt");
+
   ros::init(argc, argv, "Detect_Ball_Node");
 
   ros::NodeHandle n;
