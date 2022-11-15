@@ -36,5 +36,5 @@ int main()
   Eigen::MatrixXd confusion = cal_confusion_matrix(test_Y, pred_Y);
 
   std::cout << confusion << '\n';
-  A.store_weight("/home/mes/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_ball_weight.txt", confusion(0, 0), confusion(1, 0));
+  A.store_weight("/home/mes/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_box_weight.txt", confusion(0, 0), confusion(1, 0));
 }
