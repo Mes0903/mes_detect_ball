@@ -71,6 +71,7 @@ Eigen::VectorXd make_feature(const Eigen::MatrixXd &Seg)
   return feature;
 }
 
+/*
 std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> transform_to_feature(const Eigen::MatrixXd &xy_data)
 {
   std::vector<Eigen::MatrixXd> segment_data;
@@ -106,6 +107,35 @@ std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> transform_to_feature(co
   }
 
   return {feature_data, segment_data};
+}
+*/
+
+std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> transform_to_feature(const Eigen::MatrixXd &xy_data) // xy_data is 720*2
+{
+
+  Eigen::MatrixXd feature_data = Eigen::MatrixXd::Zero(1, 5);
+  bool empty_flag = true;
+
+  [[maybe_unused]] int SECTION = xy_data.rows() / 720;
+
+  std::vector<Eigen::MatrixXd> section_seg_vec = do_section_segment(xy_data); // 那一秒切出來的所有 segment
+
+  for (const auto &Seg : section_seg_vec)
+  {
+    Eigen::VectorXd single_feature = make_feature(Seg);
+
+    if (empty_flag)
+    {
+      feature_data += single_feature.transpose();
+      empty_flag = false;
+    }
+    else
+    {
+      feature_data = AppendRow(feature_data, single_feature);
+    }
+  }
+
+  return {feature_data, section_seg_vec};
 }
 
 #endif
