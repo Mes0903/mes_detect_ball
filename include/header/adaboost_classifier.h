@@ -3,6 +3,7 @@
 #define __ADABOOST_CLASSIFIER
 
 #include "weak_learner.h"
+#include "normalize.h"
 #include <vector>
 #include <Eigen/Eigen>
 
@@ -23,8 +24,8 @@ public:
   void set_classifier_num(const int num);
 
 public:
-  void store_weight(const char *filename, uint32_t TP, uint32_t FN);
-  void load_weight(const char *filename);
+  void store_weight(const char *filename, uint32_t TP, uint32_t FN, Normalizer &normalizer);
+  void load_weight(const char *filename, Normalizer &normalizer);
 };
 
 #endif

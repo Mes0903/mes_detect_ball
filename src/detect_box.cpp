@@ -17,7 +17,8 @@
 #include <Eigen/Dense>
 #include <limits>
 
-// this is detect ball.cpp
+Normalizer normalizer;
+Adaboost A;
 
 visualization_msgs::Marker marker;
 uint32_t shape = visualization_msgs::Marker::CYLINDER;
@@ -94,10 +95,10 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
     data(i, 1) = scan->ranges[i] * std::sin(scan->angle_min + scan->angle_increment * i);
   }
 
+  data = normalizer.transform(data);
+
   // 切分段
   const auto [feature_matrix, segment_vec] = transform_to_feature(data); // segment_vec is std::vector<Eigen::MatrixXd>
-  Adaboost A;
-  A.load_weight("/home/hypharos/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_box_weight.txt");
 
   // prediction
   puts("make prediction");
@@ -119,6 +120,8 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 
 int main(int argc, char **argv)
 {
+  A.load_weight("/home/mes/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_box_weight.txt", normalizer);
+
   ros::init(argc, argv, "Detect_Box_Node");
 
   ros::NodeHandle n;

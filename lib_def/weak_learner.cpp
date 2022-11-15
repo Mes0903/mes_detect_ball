@@ -22,7 +22,7 @@ weak_learner::fit(const Eigen::MatrixXd &train_X, const Eigen::MatrixXd &train_Y
   w0 = dis(gen);
   Eigen::VectorXd w_momentum = Eigen::VectorXd::Zero(D);
   double w0_momentum = 0.0;
-  double alpha = 0.25;
+  double alpha = 0.1;
 
   for (uint32_t i = 0; i < Iterations; ++i)
   {

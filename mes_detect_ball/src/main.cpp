@@ -19,6 +19,9 @@
 
 // this is detect ball.cpp
 
+Adaboost A;
+Normalizer normalizer;
+
 visualization_msgs::Marker marker;
 uint32_t shape = visualization_msgs::Marker::CYLINDER;
 ros::Publisher marker_pub;
@@ -94,10 +97,10 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
     data(i, 1) = scan->ranges[i] * std::sin(scan->angle_min + scan->angle_increment * i);
   }
 
+  data = normalizer.transform(data);
+
   // 切分段
   const auto [feature_matrix, segment_vec] = transform_to_feature(data); // segment_vec is std::vector<Eigen::MatrixXd>
-  Adaboost A;
-  A.load_weight("/home/hypharos/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_box_weight.txt");
 
   // prediction
   puts("make prediction");
@@ -119,9 +122,13 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "Detect_Box_Node");
+
+  A.load_weight("/home/mes/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_ball_weight.txt", normalizer);
+
+  ros::init(argc, argv, "Detect_Ball_Node");
 
   ros::NodeHandle n;
+
   ros::Subscriber sub = n.subscribe<sensor_msgs::LaserScan>("/scan", 1000, scanCallback);
 
   ros::Timer timer1 = n.createTimer(ros::Duration(0.1), callback1);
@@ -131,5 +138,6 @@ int main(int argc, char **argv)
   markerArray_pub = n.advertise<visualization_msgs::MarkerArray>("visualization_markerArray", 1000);
 
   init_marker();
+
   ros::spin();
 }

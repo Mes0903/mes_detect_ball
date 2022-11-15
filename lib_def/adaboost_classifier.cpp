@@ -1,4 +1,5 @@
 #include "adaboost_classifier.h"
+#include "normalize.h"
 #include <cmath>
 #include <iostream>
 #include <fstream>
@@ -54,7 +55,7 @@ void Adaboost::set_classifier_num(const int num)
   alpha = Eigen::VectorXd::Zero(M);
 }
 
-void Adaboost::store_weight(const char *filename, uint32_t TP, uint32_t FN)
+void Adaboost::store_weight(const char *filename, uint32_t TP, uint32_t FN, Normalizer &normalizer)
 {
   std::ifstream infile(filename);
   if (infile.fail())
@@ -82,6 +83,13 @@ void Adaboost::store_weight(const char *filename, uint32_t TP, uint32_t FN)
     std::cerr << "Successfully opened " << filename << '\n';
 
   outfile << static_cast<double>(TP) / (TP + FN) << '\n';
+  outfile << normalizer.data_min.size() << ' ' << normalizer.data_mm.size() << '\n';
+  for (int i = 0; i < normalizer.data_min.size(); ++i)
+    outfile << normalizer.data_min(i) << " \n"[i == normalizer.data_min.size() - 1];
+
+  for (int i = 0; i < normalizer.data_mm.size(); ++i)
+    outfile << normalizer.data_mm(i) << " \n"[i == normalizer.data_mm.size() - 1];
+
   outfile << M << '\n';
   for (int i = 0; i < M; ++i)
     outfile << alpha(i) << " \n"[i == M - 1];
@@ -93,7 +101,7 @@ void Adaboost::store_weight(const char *filename, uint32_t TP, uint32_t FN)
   std::cerr << "Successfully store " << filename << '\n';
 }
 
-void Adaboost::load_weight(const char *filename)
+void Adaboost::load_weight(const char *filename, Normalizer &normalizer)
 {
   std::ifstream infile(filename);
   if (infile.fail())
@@ -108,6 +116,31 @@ void Adaboost::load_weight(const char *filename)
   getline(infile, line);
   stream << line;
   stream >> correct_rate;
+  stream.str("");
+  stream.clear();
+
+  int min_size, mm_size;
+  getline(infile, line);
+  stream << line;
+  stream >> min_size >> mm_size;
+  stream.str("");
+  stream.clear();
+  normalizer.data_min = Eigen::VectorXd::Zero(min_size);
+  normalizer.data_mm = Eigen::VectorXd::Zero(mm_size);
+
+  getline(infile, line);
+  stream << line;
+  for (int i = 0; i < min_size; ++i)
+    stream >> normalizer.data_min(i);
+
+  stream.str("");
+  stream.clear();
+
+  getline(infile, line);
+  stream << line;
+  for (int i = 0; i < mm_size; ++i)
+    stream >> normalizer.data_mm(i);
+
   stream.str("");
   stream.clear();
 
