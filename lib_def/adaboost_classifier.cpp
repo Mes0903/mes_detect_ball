@@ -11,13 +11,11 @@ void Adaboost::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_
 {
   Eigen::VectorXd w = Eigen::VectorXd::Ones(train_X.rows());
 
-  for (int i = 0; i < M; ++i)
-  {
+  for (int i = 0; i < M; ++i) {
     w /= w.sum();
     const auto [pred_Y, err] = T[i].fit(train_X, train_Y, w, 1500);
 
-    if (err == 1.0)
-    {
+    if (err == 1.0) {
       auto tmp = T[i];
       T.clear();
       T.push_back(std::move(tmp));
@@ -27,8 +25,7 @@ void Adaboost::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_
     }
 
     alpha(i) = std::log((1 + err) / (1 - err)) / 2;
-    for (int r = 0; r < train_Y.size(); ++r)
-    {
+    for (int r = 0; r < train_Y.size(); ++r) {
       if (train_Y(r) != pred_Y(r))
         w(r) *= std::exp(alpha(i));
       else
@@ -44,51 +41,45 @@ Eigen::VectorXd Adaboost::predict(const Eigen::MatrixXd &test_X)
   for (int m = 0; m < M; ++m)
     C += alpha(m) * (2 * T[m].get_label(test_X).array() - 1);
 
-  return C.unaryExpr([](double x)
-                     { return double(x > 0); });
+  return C.unaryExpr([](double x) { return double(x > 0); });
 }
 
-void Adaboost::set_classifier_num(const int num)
+void Adaboost::store_weight(const std::string filepath)
 {
-  M = num;
-  T.resize(num);
-  alpha = Eigen::VectorXd::Zero(M);
-}
-
-void Adaboost::store_weight(const char *filename, uint32_t TP, uint32_t FN, Normalizer &normalizer)
-{
-  std::ifstream infile(filename);
-  if (infile.fail())
-  {
-    std::cerr << "cant read " << filename << '\n';
+  // compact the correct rate between storing file and current training data
+  std::ifstream infile(filepath);
+  if (infile.fail()) {
+    std::cerr << "cant read " << filepath << '\n';
     exit(1);
   }
 
-  double correct_rate;
-  infile >> correct_rate;
+  uint32_t store_TN, store_TP, store_FN, store_FP;
+  infile >> store_TN >> store_TP >> store_FN >> store_FP;
   infile.close();
-  if (static_cast<double>(TP) / (TP + FN) < correct_rate)
-  {
-    std::cout << "This weight won't be saved since its correct rate is lower than the original one\n";
-    return;
+
+  double store_TP_FN = static_cast<double>(store_TP) / (store_TP + store_FN);
+  double store_TN_FP = static_cast<double>(store_TN) / (store_TN + store_FP);
+  double current_TP_FN = static_cast<double>(TP) / (TP + FN);
+  double current_TN_FP = static_cast<double>(TN) / (TN + FP);
+  if (current_TP_FN <= store_TP_FN) {    // compact TP / TP + FN
+    if (current_TP_FN == store_TP_FN) {    // if the two are same, compact TN / TN + FP
+      if (current_TN_FP <= store_TN_FP) {
+        std::cout << "This weight won't be saved since its correct rate is lower than the original one\n";
+        return;
+      }
+    }
   }
 
-  std::ofstream outfile(filename);
-  if (outfile.fail())
-  {
-    std::cerr << "cant found " << filename << '\n';
+  // store file
+  std::ofstream outfile(filepath);
+  if (outfile.fail()) {
+    std::cerr << "cant found " << filepath << '\n';
     exit(1);
   }
   else
-    std::cerr << "Successfully opened " << filename << '\n';
+    std::cerr << "Successfully opened " << filepath << '\n';
 
-  outfile << static_cast<double>(TP) / (TP + FN) << '\n';
-  outfile << normalizer.data_min.size() << ' ' << normalizer.data_mm.size() << '\n';
-  for (int i = 0; i < normalizer.data_min.size(); ++i)
-    outfile << normalizer.data_min(i) << " \n"[i == normalizer.data_min.size() - 1];
-
-  for (int i = 0; i < normalizer.data_mm.size(); ++i)
-    outfile << normalizer.data_mm(i) << " \n"[i == normalizer.data_mm.size() - 1];
+  outfile << current_TP_FN << ' ' << current_TN_FP << '\n';
 
   outfile << M << '\n';
   for (int i = 0; i < M; ++i)
@@ -98,15 +89,13 @@ void Adaboost::store_weight(const char *filename, uint32_t TP, uint32_t FN, Norm
     T[i].store_weight(outfile);
 
   outfile.close();
-  std::cerr << "Successfully store " << filename << '\n';
 }
 
-void Adaboost::load_weight(const char *filename, Normalizer &normalizer)
+void Adaboost::load_weight(const std::string filepath)
 {
-  std::ifstream infile(filename);
-  if (infile.fail())
-  {
-    std::cout << "cant found " << filename << '\n';
+  std::ifstream infile(filepath);
+  if (infile.fail()) {
+    std::cout << "cant found " << filepath << '\n';
     exit(1);
   }
 
@@ -115,32 +104,7 @@ void Adaboost::load_weight(const char *filename, Normalizer &normalizer)
 
   getline(infile, line);
   stream << line;
-  stream >> correct_rate;
-  stream.str("");
-  stream.clear();
-
-  int min_size, mm_size;
-  getline(infile, line);
-  stream << line;
-  stream >> min_size >> mm_size;
-  stream.str("");
-  stream.clear();
-  normalizer.data_min = Eigen::VectorXd::Zero(min_size);
-  normalizer.data_mm = Eigen::VectorXd::Zero(mm_size);
-
-  getline(infile, line);
-  stream << line;
-  for (int i = 0; i < min_size; ++i)
-    stream >> normalizer.data_min(i);
-
-  stream.str("");
-  stream.clear();
-
-  getline(infile, line);
-  stream << line;
-  for (int i = 0; i < mm_size; ++i)
-    stream >> normalizer.data_mm(i);
-
+  stream >> TN >> TP >> FN >> FP;
   stream.str("");
   stream.clear();
 
@@ -159,12 +123,31 @@ void Adaboost::load_weight(const char *filename, Normalizer &normalizer)
   stream.clear();
 
   T.resize(M);
-  for (int i = 0; i < M; ++i)
-  {
+  for (int i = 0; i < M; ++i) {
     T[i].load_weight(infile, stream);
     stream.str("");
     stream.clear();
   }
 
   infile.close();
+}
+
+Eigen::MatrixXd Adaboost::cal_confusion_matrix(const Eigen::VectorXd &y, const Eigen::VectorXd &pred_Y)
+{
+  uint32_t R = y.size();
+
+  for (uint32_t i = 0; i < R; ++i) {
+    if (y(i) == 0 && pred_Y(i) == 0)
+      ++TN;
+    else if (y(i) == 0 && pred_Y(i) == 1)
+      ++FP;
+    else if (y(i) == 1 && pred_Y(i) == 1)
+      ++TP;
+    else if (y(i) == 1 && pred_Y(i) == 0)
+      ++FN;
+  }
+
+  Eigen::MatrixXd out(2, 2);
+  out << TP, FP, FN, TN;
+  return out;
 }

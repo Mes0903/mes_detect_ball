@@ -4,8 +4,7 @@
 
 #include <Eigen/Eigen>
 
-class Normalizer
-{
+class Normalizer {
 public:
   Eigen::VectorXd data_min;
   Eigen::VectorXd data_mm;
@@ -13,6 +12,8 @@ public:
 public:
   void fit(const Eigen::MatrixXd &data);
   Eigen::MatrixXd transform(const Eigen::MatrixXd &x);
+  void store_weight(const std::string filepath);
+  void load_weight(const std::string filepath);
 };
 
 #endif

@@ -1,24 +1,25 @@
 #include "adaboost_classifier.h"
-#include "confusion.h"
 #include "load_matrix.h"
 #include "make_feature.h"
 #include "weak_learner.h"
 #include "segment.h"
 #include "normalize.h"
+#include "file_handler.h"
+
 #include <iostream>
 #include <Eigen/Dense>
 #include <limits>
 
-int main()
+int main([[maybe_unused]] int argc, char **argv)
 {
+  const std::string filepath = get_filepath(argv[0]);
   int case_num = 0;
   int sample = 0;
 
   std::cout << "Input 1 if training, others if loading\n>";
   std::cin >> case_num;
 
-  if (case_num == 1)
-  {
+  if (case_num == 1) {
     std::cout << "input sample numbers\n>";
     std::cin >> sample;
   }
@@ -27,52 +28,48 @@ int main()
 
   /* fitting */
   puts("read training data...");
-  Eigen::MatrixXd train_X = readDataSet("/home/hypharos/catkin_ws/src/mes_detect_ball/include/dataset/ball_train_x.txt", 2248, 5); // file, row, col
+  Eigen::MatrixXd train_X = readDataSet(filepath + "/include/dataset/ball_train_x.txt", 2248, 5);    // file, row, col
 
   puts("reading testing data...");
-  Eigen::MatrixXd test_X = readDataSet("/home/hypharos/catkin_ws/src/mes_detect_ball/include/dataset/ball_test_x.txt", 2230, 5);
+  Eigen::MatrixXd test_X = readDataSet(filepath + "/include/dataset/ball_test_x.txt", 2230, 5);
 
   puts("reading training label...");
-  Eigen::VectorXd train_Y = readLabel("/home/hypharos/catkin_ws/src/mes_detect_ball/include/dataset/ball_train_y.txt", 2248); // file, segment num(row)
+  Eigen::VectorXd train_Y = readLabel(filepath + "/include/dataset/ball_train_y.txt", 2248);    // file, segment num(row)
 
   puts("reading testing label...");
-  Eigen::VectorXd test_Y = readLabel("/home/hypharos/catkin_ws/src/mes_detect_ball/include/dataset/ball_test_y.txt", 2230);
+  Eigen::VectorXd test_Y = readLabel(filepath + "/include/dataset/ball_test_y.txt", 2230);
 
   Normalizer normalizer;
 
-  if (case_num == 1)
-  {
-    normalizer.fit(train_X);
-    train_X = normalizer.transform(train_X);
-    test_X = normalizer.transform(test_X);
-    for (int i = 0; i < sample; ++i)
-    {
-
+  if (case_num == 1) {
+    for (int i = 0; i < sample; ++i) {
       puts("start tranning");
       Adaboost A(100);
       A.fit(train_X, train_Y);
+
+      normalizer.fit(train_X);
+      train_X = normalizer.transform(train_X);
+      test_X = normalizer.transform(test_X);
 
       // prediction
       puts("make prediction");
       Eigen::VectorXd pred_Y = A.predict(test_X);
 
       puts("cal confusion matrix");
-      Eigen::MatrixXd confusion = cal_confusion_matrix(test_Y, pred_Y);
+      Eigen::MatrixXd confusion = A.cal_confusion_matrix(test_Y, pred_Y);
       std::cout << confusion << '\n';
-      A.store_weight("/home/hypharos/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_ball_weight.txt", confusion(0, 0), confusion(1, 0), normalizer);
+      Weight_handle::store_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A, normalizer);
     }
   }
-  else
-  {
+  else {
     Adaboost A;
-    A.load_weight("/home/hypharos/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_ball_weight.txt", normalizer);
+    Weight_handle::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A, normalizer);
 
-    train_X = normalizer.transform(train_X);
     test_X = normalizer.transform(test_X);
     puts("make prediction");
     Eigen::VectorXd pred_Y = A.predict(test_X);
     puts("cal confusion matrix");
-    Eigen::MatrixXd confusion = cal_confusion_matrix(test_Y, pred_Y);
+    Eigen::MatrixXd confusion = A.cal_confusion_matrix(test_Y, pred_Y);
     std::cout << confusion << '\n';
   }
 }

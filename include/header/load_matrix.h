@@ -11,22 +11,20 @@
 
 void transform_to_xy(Eigen::MatrixXd &data, const uint32_t ROWS)
 {
-  for (uint32_t i = 0; i < ROWS; i++)
-  {
+  for (uint32_t i = 0; i < ROWS; i++) {
     const double theta = M_PI * data(i, 0) / 180;
     const double r = data(i, 1);
 
-    data(i, 0) = r * std::cos(theta); // x
-    data(i, 1) = r * std::sin(theta); // y
+    data(i, 0) = r * std::cos(theta);    // x
+    data(i, 1) = r * std::sin(theta);    // y
   }
 }
 
-Eigen::MatrixXd readDataSet(const char *filename, const uint32_t ROWS, const uint32_t COLS)
+Eigen::MatrixXd readDataSet(const std::string filepath, const uint32_t ROWS, const uint32_t COLS)
 {
-  std::ifstream infile(filename);
-  if (infile.fail())
-  {
-    std::cout << "cant found " << filename << '\n';
+  std::ifstream infile(filepath);
+  if (infile.fail()) {
+    std::cout << "cant found " << filepath << '\n';
     exit(1);
   }
 
@@ -34,13 +32,11 @@ Eigen::MatrixXd readDataSet(const char *filename, const uint32_t ROWS, const uin
   std::string line;
   std::stringstream stream;
   uint32_t row = 0;
-  for (uint32_t cnt = 0; cnt < ROWS; ++cnt)
-  {
+  for (uint32_t cnt = 0; cnt < ROWS; ++cnt) {
     double buff;
     getline(infile, line);
     stream << line;
-    for (uint32_t col = 0; col < COLS; ++col)
-    {
+    for (uint32_t col = 0; col < COLS; ++col) {
       stream >> buff;
       result(row, col) = buff;
     }
@@ -57,12 +53,11 @@ Eigen::MatrixXd readDataSet(const char *filename, const uint32_t ROWS, const uin
   return result;
 };
 
-Eigen::VectorXd readLabel(const char *filename, const uint32_t SIZE)
+Eigen::VectorXd readLabel(const std::string filepath, const uint32_t SIZE)
 {
-  std::ifstream infile(filename);
-  if (infile.fail())
-  {
-    std::cout << "cant found " << filename << '\n';
+  std::ifstream infile(filepath);
+  if (infile.fail()) {
+    std::cout << "cant found " << filepath << '\n';
     exit(1);
   }
 
@@ -71,8 +66,7 @@ Eigen::VectorXd readLabel(const char *filename, const uint32_t SIZE)
   std::stringstream stream;
 
   uint32_t row = 0;
-  for (uint32_t cnt = 0; cnt < SIZE; ++cnt)
-  {
+  for (uint32_t cnt = 0; cnt < SIZE; ++cnt) {
     double buff;
     getline(infile, line);
     stream << line;

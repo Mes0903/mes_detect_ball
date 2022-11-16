@@ -13,6 +13,8 @@
 #include "weak_learner.h"
 #include "segment.h"
 #include "normalize.h"
+#include "file_handler.h"
+
 #include <iostream>
 #include <Eigen/Dense>
 #include <limits>
@@ -89,8 +91,7 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
   const int ROW = 720;
   Eigen::MatrixXd data(ROW, 2);
 
-  for (int i = 0; i < ROW; i++)
-  {
+  for (int i = 0; i < ROW; i++) {
     data(i, 0) = scan->ranges[i] * std::cos(scan->angle_min + scan->angle_increment * i);
     data(i, 1) = scan->ranges[i] * std::sin(scan->angle_min + scan->angle_increment * i);
   }
@@ -98,15 +99,13 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
   data = normalizer.transform(data);
 
   // 切分段
-  const auto [feature_matrix, segment_vec] = transform_to_feature(data); // segment_vec is std::vector<Eigen::MatrixXd>
+  const auto [feature_matrix, segment_vec] = transform_to_feature(data);    // segment_vec is std::vector<Eigen::MatrixXd>
 
   // prediction
   puts("make prediction");
-  Eigen::VectorXd pred_Y = A.predict(feature_matrix); // input 等等是 xy，所以要轉 feature
-  for (int i = 0; i < pred_Y.size(); ++i)
-  {
-    if (pred_Y(i) == 1)
-    {
+  Eigen::VectorXd pred_Y = A.predict(feature_matrix);    // input 等等是 xy，所以要轉 feature
+  for (int i = 0; i < pred_Y.size(); ++i) {
+    if (pred_Y(i) == 1) {
       const Eigen::MatrixXd &M = segment_vec[i];
       std::cout << M(0, 0) << '\n';
     }
@@ -118,7 +117,7 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
   markerArray_pub.publish(markerArray);
 }
 
-int main(int argc, char **argv)
+int main([[maybe_unused]] int argc, char **argv)
 {
   A.load_weight("/home/hypharos/catkin_ws/src/mes_detect_ball/include/weight_data/adaboost_box_weight.txt", normalizer);
 
