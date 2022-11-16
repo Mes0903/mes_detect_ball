@@ -40,9 +40,7 @@ set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/include/header)
 set(DATA_SETS ${PROJECT_SOURCE_DIR}/include/dataset)
 
 include_directories(
-  $<$<BOOL:${UNIX}>:
-    ${catkin_INCLUDE_DIRS}
-  >
+  ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
   ${THIRD_PARTY_DIR}
   ${DATA_SETS}
@@ -59,9 +57,7 @@ add_executable(Training_Ball
 
 target_link_libraries(
   Training_Ball
-  $<$<BOOL:${UNIX}>:
-    ${catkin_LIBRARIES}
-  >
+  ${catkin_LIBRARIES}
   ${Eigen3_LIBRARIES}
 )
 
@@ -72,15 +68,13 @@ add_executable(Training_BOX
 
 target_link_libraries(
   Training_BOX
-  $<$<BOOL:${UNIX}>:
-    ${catkin_LIBRARIES}
-  >
+  ${catkin_LIBRARIES}
   ${Eigen3_LIBRARIES}
 )
 
 # for ROS detection
 
-if(UNIX)
+if(__WIN32__)
   add_executable(Detect_Ball
     ./src/main.cpp
     ${LIB_DEF}
@@ -102,4 +96,4 @@ if(UNIX)
     ${catkin_LIBRARIES}
     ${Eigen3_LIBRARIES}
   )
-endif(UNIX)
+endif(__WIN32__)

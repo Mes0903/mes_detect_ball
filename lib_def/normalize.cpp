@@ -10,7 +10,8 @@ void Normalizer::fit(const Eigen::MatrixXd &data)
   data_min = Eigen::VectorXd::Zero(COLS);
   data_mm = Eigen::VectorXd::Zero(COLS);
 
-  for (int i = 0; i < COLS; ++i) {
+  for (int i = 0; i < COLS; ++i)
+  {
     data_min(i) = data.col(i).minCoeff();
     data_mm(i) = data.col(i).maxCoeff() - data_min(i);
     if (data_mm(i) == 0)
@@ -29,14 +30,8 @@ Eigen::MatrixXd Normalizer::transform(const Eigen::MatrixXd &data)
   return tf_matrix;
 }
 
-void Normalizer::store_weight(const std::string filepath)
+void Normalizer::store_weight([[maybe_unused]] const std::string filepath, std::ofstream &outfile)
 {
-  std::ofstream outfile(filepath);
-  if (outfile.fail()) {
-    std::cerr << "cant found " << filepath << '\n';
-    exit(1);
-  }
-
   outfile << data_min.size() << ' ' << data_mm.size() << '\n';
   for (int i = 0; i < data_min.size(); ++i)
     outfile << data_min(i) << " \n"[i == data_min.size() - 1];
@@ -44,17 +39,11 @@ void Normalizer::store_weight(const std::string filepath)
   for (int i = 0; i < data_mm.size(); ++i)
     outfile << data_mm(i) << " \n"[i == data_mm.size() - 1];
 
-  outfile.close();
+  std::cout << "Successfly stored normalizer!\n";
 }
 
-void Normalizer::load_weight(const std::string filepath)
+void Normalizer::load_weight([[maybe_unused]] const std::string filepath, std::ifstream &infile)
 {
-  std::ifstream infile(filepath);
-  if (infile.fail()) {
-    std::cout << "cant found " << filepath << '\n';
-    exit(1);
-  }
-
   std::string line;
   std::stringstream stream;
 
@@ -79,6 +68,4 @@ void Normalizer::load_weight(const std::string filepath)
   stream << line;
   for (int i = 0; i < mm_size; ++i)
     stream >> data_mm(i);
-
-  infile.close();
 }
