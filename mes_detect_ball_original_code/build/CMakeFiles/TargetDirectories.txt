@@ -1,0 +1,4 @@
+D:/document/GitHub/mes_detect_ball/build/CMakeFiles/Training_Ball.dir
+D:/document/GitHub/mes_detect_ball/build/CMakeFiles/Training_BOX.dir
+D:/document/GitHub/mes_detect_ball/build/CMakeFiles/edit_cache.dir
+D:/document/GitHub/mes_detect_ball/build/CMakeFiles/rebuild_cache.dir
