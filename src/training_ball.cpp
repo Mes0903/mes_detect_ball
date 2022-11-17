@@ -30,22 +30,20 @@ int main([[maybe_unused]] int argc, char **argv)
   std::cout << "Input 1 if training, others if loading\n>";
   std::cin >> case_num;
 
-  if (case_num == 1)
-  {
+  if (case_num == 1) {
     std::cout << "input sample numbers\n>";
     std::cin >> sample;
   }
   std::cin.clear();
   std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-  if (case_num == 1)
-  {
+  if (case_num == 1) {
     /* fitting */
     puts("read training data...");
-    Eigen::MatrixXd train_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_train_xn_2.txt", 25294, 5); // file, row, col
+    Eigen::MatrixXd train_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_train_xn_2.txt", 25294, 5);    // file, row, col
 
     puts("reading training label...");
-    Eigen::VectorXd train_Y = Load_Matrix::readLabel(filepath + "/include/dataset/ball_train_yn_2.txt", 25294); // file, segment num(row)
+    Eigen::VectorXd train_Y = Load_Matrix::readLabel(filepath + "/include/dataset/ball_train_yn_2.txt", 25294);    // file, segment num(row)
 
     puts("reading testing data...");
     Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_test_xn_2.txt", 10841, 5);
@@ -58,8 +56,7 @@ int main([[maybe_unused]] int argc, char **argv)
     train_X = normalizer.transform(train_X);
     test_X = normalizer.transform(test_X);
 
-    for (int i = 0; i < sample; ++i)
-    {
+    for (int i = 0; i < sample; ++i) {
       puts("start tranning");
       Adaboost A(100);
       A.fit(train_X, train_Y);
@@ -76,8 +73,7 @@ int main([[maybe_unused]] int argc, char **argv)
       Weight_handle::store_weight(confusion_matrix, filepath + "/include/weight_data/adaboost_ball_weight.txt", A, normalizer);
     }
   }
-  else
-  {
+  else {
     puts("reading testing data...");
     Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_test_xn_2.txt", 10841, 5);
 

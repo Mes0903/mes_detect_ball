@@ -19,9 +19,8 @@ Eigen::VecotrXd ball_Label(const int section, const int S_n)
 {
   Eigen::VectorXd PN = -1 * Eigen::VectorXd::Ones(S_n);
 
-  if (section == 1)
-  {
-    PN(7) = 1; // 第 7 個 segment 是球
+  if (section == 1) {
+    PN(7) = 1;    // 第 7 個 segment 是球
     return PN;
   }
   elseif(section == 2)
