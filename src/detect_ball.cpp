@@ -87,15 +87,23 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 
   // prediction
   Eigen::VectorXd pred_Y = A.predict(feature_matrix);    // input 等等是 xy，所以要轉 feature
+  bool detect_flag = false;
+
   for (int i = 0; i < pred_Y.size(); ++i) {
     if (pred_Y(i) == 1) {
+      detect_flag = true;
+
       const Eigen::MatrixXd &M = segment_vec[i];
       std::cout << "Ball is at: [" << M(0, 0) << ", " << M(0, 1) << "]\n";
+
       marker.pose.position.x = M(0, 0);
       marker.pose.position.y = M(0, 1);
       marker.publish(marker);
     }
   }
+
+  if (detect_flag)
+    std::cout << "---------------------------------\n";
 
   for (long unsigned int i = 0; i < markerArray.markers.size(); ++i)
     markerArray.markers[i].id = i;
