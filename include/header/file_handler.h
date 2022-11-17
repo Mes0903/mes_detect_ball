@@ -2,23 +2,30 @@
 #ifndef __FILE_HANDLER_H__
 #define __FILE_HANDLER_H__
 
+#include <Eigen/Eigen>
 #include <string>
-#include <ranges>
 #include <fstream>
-#include <type_traits>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 #include <cmath>
+
+#if __cplusplus >= 202002L
+
 #include <string_view>
-#include <Eigen/Eigen>
+#include <ranges>
+
+#else
+
+#include <type_traits>
+
+#endif
 
 #define CLEAN_STREAM \
   stream.str("");    \
   stream.clear()
 
-namespace Load_Matrix
-{
+namespace Load_Matrix {
   /**
    * @brief Transforming the matrix from [theta, r] data to [x, y] data.
    *
@@ -27,13 +34,12 @@ namespace Load_Matrix
    */
   void transform_to_xy(Eigen::MatrixXd &data, const uint32_t ROWS)
   {
-    for (uint32_t i = 0; i < ROWS; i++)
-    {
-      const double theta = M_PI * data(i, 0) / 180; // transform the radian to angle
-      const double r = data(i, 1);                  // radius
+    for (uint32_t i = 0; i < ROWS; i++) {
+      const double theta = M_PI * data(i, 0) / 180;    // transform the radian to angle
+      const double r = data(i, 1);    // radius
 
-      data(i, 0) = r * std::cos(theta); // x
-      data(i, 1) = r * std::sin(theta); // y
+      data(i, 0) = r * std::cos(theta);    // x
+      data(i, 1) = r * std::sin(theta);    // y
     }
   }
 
@@ -48,8 +54,7 @@ namespace Load_Matrix
   Eigen::MatrixXd readDataSet(const std::string filepath, const uint32_t ROWS, const uint32_t COLS)
   {
     std::ifstream infile(filepath);
-    if (infile.fail())
-    {
+    if (infile.fail()) {
       std::cout << "cant found " << filepath << '\n';
       exit(1);
     }
@@ -58,13 +63,11 @@ namespace Load_Matrix
     std::string line;
     std::stringstream stream;
     uint32_t row = 0;
-    for (uint32_t cnt = 0; cnt < ROWS; ++cnt)
-    {
+    for (uint32_t cnt = 0; cnt < ROWS; ++cnt) {
       double buff;
-      getline(infile, line); // read every line of the file
+      getline(infile, line);    // read every line of the file
       stream << line;
-      for (uint32_t col = 0; col < COLS; ++col)
-      {
+      for (uint32_t col = 0; col < COLS; ++col) {
         stream >> buff;
         result(row, col) = buff;
       }
@@ -90,8 +93,7 @@ namespace Load_Matrix
   Eigen::VectorXd readLabel(const std::string filepath, const uint32_t SIZE)
   {
     std::ifstream infile(filepath);
-    if (infile.fail())
-    {
+    if (infile.fail()) {
       std::cout << "cant found " << filepath << '\n';
       exit(1);
     }
@@ -101,10 +103,9 @@ namespace Load_Matrix
     std::stringstream stream;
 
     uint32_t row = 0;
-    for (uint32_t cnt = 0; cnt < SIZE; ++cnt)
-    {
+    for (uint32_t cnt = 0; cnt < SIZE; ++cnt) {
       double buff;
-      getline(infile, line); // read every line of the file
+      getline(infile, line);    // read every line of the file
       stream << line;
       stream >> buff;
       result(row) = buff;
@@ -116,7 +117,7 @@ namespace Load_Matrix
     infile.close();
     return result;
   }
-}
+}    // namespace Load_Matrix
 
 /**
  * @brief Return the project directory path.
@@ -126,22 +127,17 @@ namespace Load_Matrix
  */
 std::string get_filepath(const char *filepath)
 {
-
   std::string buf = filepath;
   std::string path;
 
 #if __cplusplus >= 202002L
-  for (const std::string token : buf | std::ranges::views::split('/') // split the file path by '/'
-                                     | std::ranges::views::transform( // transform the output type to the std::string
-                                           [](auto &&rng)
-                                           { return std::string(&*rng.begin(), std::ranges::distance(rng)); }))
-  {
-    if (token != "")
-    {
+  for (const std::string token : buf | std::ranges::views::split('/')    // split the file path by '/'
+                                   | std::ranges::views::transform(    // transform the output type to the std::string
+                                       [](auto &&rng) { return std::string(&*rng.begin(), std::ranges::distance(rng)); })) {
+    if (token != "") {
       path += "/" + token;
 
-      if (token == "catkin_ws")
-      {
+      if (token == "catkin_ws") {
         path += "/src/mes_detect_ball";
         break;
       }
@@ -152,15 +148,12 @@ std::string get_filepath(const char *filepath)
 
   std::size_t pos = 0;
   std::string token;
-  while ((pos = buf.find(delimiter)) != std::string::npos)
-  {
+  while ((pos = buf.find(delimiter)) != std::string::npos) {
     token = buf.substr(0, pos);
-    if (token != "")
-    {
+    if (token != "") {
       path += '/' + token;
 
-      if (token == "catkin_ws")
-      {
+      if (token == "catkin_ws") {
         path += "/src/mes_detect_ball";
         break;
       }
@@ -174,11 +167,9 @@ std::string get_filepath(const char *filepath)
   return path;
 }
 
-namespace Weight_handle
-{
+namespace Weight_handle {
 
-  namespace detail
-  {
+  namespace detail {
 #if __cplusplus >= 202002L
     /**
      * @brief check if the weight in class can be stored
@@ -213,7 +204,7 @@ namespace Weight_handle
     template <typename T>
     void __store_weight(const std::string filepath, std::ofstream &outfile, T &ins)
 #if __cplusplus >= 202002L
-        requires can_store<T> // Check if the instance implemented the `store_weight` method by Detection Idioms(Concept requires)
+      requires can_store<T>    // Check if the instance implemented the `store_weight` method by Detection Idioms(Concept requires)
 #endif
     {
 #if __cplusplus >= 202002L
@@ -247,10 +238,9 @@ namespace Weight_handle
     template <typename T>
     void __load_weight(const std::string filepath, std::ifstream &infile, T &ins)
 #if __cplusplus >= 202002L
-        requires can_load<T> // Check if the instance implemented the `load_weight` method by Detection Idioms(Concept requires)
+      requires can_load<T>    // Check if the instance implemented the `load_weight` method by Detection Idioms(Concept requires)
 #endif
     {
-
 #if __cplusplus >= 202002L
       ins.load_weight(filepath, infile);
 #else
@@ -270,7 +260,7 @@ namespace Weight_handle
       __load_weight(filepath, infile, first);
       __load_weight(filepath, infile, instances...);
     }
-  } // namespace Weight_handle::detail
+  }    // namespace detail
 
   /**
    * @brief the API for storing data
@@ -283,8 +273,7 @@ namespace Weight_handle
   {
     // compact the correct rate between storing file and current training data
     std::ifstream infile(filepath);
-    if (infile.fail())
-    {
+    if (infile.fail()) {
       std::cerr << "cant read " << filepath << '\n';
       exit(1);
     }
@@ -316,15 +305,13 @@ namespace Weight_handle
               << "Best F1 Score: " << old_F1_Score << '\n';
 
     // compact F1 Score
-    if (F1_Score <= old_F1_Score)
-    {
+    if (F1_Score <= old_F1_Score) {
       std::cout << "This weight won't be saved since its F1 Score is not better than the original one\n";
       return;
     }
 
     std::ofstream outfile(filepath);
-    if (outfile.fail())
-    {
+    if (outfile.fail()) {
       std::cout << "cant found " << filepath << '\n';
       exit(1);
     }
@@ -344,8 +331,7 @@ namespace Weight_handle
   void load_weight(const std::string filepath, T &...instances)
   {
     std::ifstream infile(filepath);
-    if (infile.fail())
-    {
+    if (infile.fail()) {
       std::cout << "cant found " << filepath << '\n';
       exit(1);
     }
@@ -354,6 +340,6 @@ namespace Weight_handle
 
     infile.close();
   }
-} // namespace Weight_handle
+}    // namespace Weight_handle
 
 #endif
