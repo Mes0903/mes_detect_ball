@@ -21,7 +21,7 @@ Adaboost A;
 Normalizer normalizer;
 
 visualization_msgs::Marker marker;
-uint32_t shape = visualization_msgs::Marker::CYLINDER;
+uint32_t shape = visualization_msgs::Marker::SPHERE;
 ros::Publisher marker_pub;
 ros::Publisher markerArray_pub;
 
@@ -68,20 +68,6 @@ void init_marker()
   marker.lifetime = ros::Duration();
 }
 
-void callback1(const ros::TimerEvent &)
-{
-  static int counter = 0;
-
-  // update maker location and publish it.
-  float x = 1 * std::cos(0.174 * counter);
-  float y = 1 * std::sin(0.174 * counter);
-  marker.pose.position.x = x;
-  marker.pose.position.y = y;
-  counter++;
-
-  marker_pub.publish(marker);
-}
-
 void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 {
   visualization_msgs::MarkerArray markerArray;
@@ -100,12 +86,14 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
   const auto [feature_matrix, segment_vec] = transform_to_feature(data);    // segment_vec is std::vector<Eigen::MatrixXd>
 
   // prediction
-  puts("make prediction");
   Eigen::VectorXd pred_Y = A.predict(feature_matrix);    // input 等等是 xy，所以要轉 feature
   for (int i = 0; i < pred_Y.size(); ++i) {
     if (pred_Y(i) == 1) {
       const Eigen::MatrixXd &M = segment_vec[i];
       std::cout << "Ball is at: [" << M(0, 0) << ", " << M(0, 1) << "]\n";
+      marker.pose.position.x = M(0, 0);
+      marker.pose.position.y = M(0, 1);
+      marker.publish(marker);
     }
   }
 
@@ -126,8 +114,6 @@ int main([[maybe_unused]] int argc, char **argv)
   ros::NodeHandle n;
 
   ros::Subscriber sub = n.subscribe<sensor_msgs::LaserScan>("/scan", 1000, scanCallback);
-
-  ros::Timer timer1 = n.createTimer(ros::Duration(0.1), callback1);
 
   marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
 
