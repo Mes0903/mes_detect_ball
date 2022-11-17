@@ -70,7 +70,7 @@ std::pair<double, double> cal_cr(const Eigen::MatrixXd &data)
   A << -2 * x, -2 * y, Eigen::MatrixXd::Ones(data.rows(), 1);
   b << (-1 * x.array().square() - y.array().square());
 
-  Eigen::MatrixXd x_p = {} A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+  Eigen::MatrixXd x_p = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
   auto xc = x_p(0);
   auto yc = x_p(1);
 
