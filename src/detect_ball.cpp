@@ -81,7 +81,7 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
   }
 
   // 切分段
-  const auto [feature_matrix, segment_vec] = transform_to_feature(data);    // segment_vec is std::vector<Eigen::MatrixXd>
+  auto [feature_matrix, segment_vec] = transform_to_feature(data);    // segment_vec is std::vector<Eigen::MatrixXd>
 
   feature_matrix = normalizer.transform(feature_matrix);
 
