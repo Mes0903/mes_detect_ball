@@ -45,10 +45,14 @@ uint32_t cal_point(const Eigen::MatrixXd &data)
 double cal_std(const Eigen::MatrixXd &data)
 {
   uint32_t n = cal_point(data);
+  if (n < 2)
+    return 0.0;
+
+
   Eigen::Vector2d m = data.colwise().mean();
   const auto &x = data.col(0);
   const auto &y = data.col(1);
-  double sigma = std::sqrt(1 / n * ((x.array() - m(0)).square().sum() + (y.array() - m(1)).square().sum()));
+  double sigma = std::sqrt((1 / (n - 1)) * ((x.array() - m(0)).square().sum() + (y.array() - m(1)).square().sum()));
 
   return sigma;
 }
@@ -77,7 +81,7 @@ std::pair<double, double> cal_cr(const Eigen::MatrixXd &data)
   double radius = std::sqrt(std::pow(xc, 2) + std::pow(yc, 2) - x_p(2));
   auto circularity = ((radius - ((xc - x.array()).square() + (yc - y.array()).square()).sqrt()).square()).sum();
 
-  return { radius, circularity };
+  return { circularity, radius };
 }
 
 Eigen::VectorXd make_feature(const Eigen::MatrixXd &Seg)
@@ -86,8 +90,8 @@ Eigen::VectorXd make_feature(const Eigen::MatrixXd &Seg)
   feature(0) = cal_point(Seg);
   feature(1) = cal_std(Seg);
   feature(2) = cal_width(Seg);
-  const auto [r, cir] = cal_cr(Seg);
-  feature(3) = r, feature(4) = cir;
+  const auto [cir, r] = cal_cr(Seg);
+  feature(3) = cir, feature(4) = r;
 
   return feature;
 }
@@ -135,8 +139,6 @@ std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> transform_to_feature(co
 {
   Eigen::MatrixXd feature_data = Eigen::MatrixXd::Zero(1, 5);
   bool empty_flag = true;
-
-  [[maybe_unused]] int SECTION = xy_data.rows() / 720;
 
   std::vector<Eigen::MatrixXd> section_seg_vec = do_section_segment(xy_data);    // 那一秒切出來的所有 segment
 
