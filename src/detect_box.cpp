@@ -81,7 +81,7 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
   }
 
   // 切分段
-  auto [feature_matrix, segment_vec] = transform_to_feature(data);    // segment_vec is std::vector<Eigen::MatrixXd>
+  auto [feature_matrix, segment_vec] = section_to_feature(data);    // segment_vec is std::vector<Eigen::MatrixXd>
 
   feature_matrix = normalizer.transform(feature_matrix);
 
@@ -113,6 +113,8 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 
 int main([[maybe_unused]] int argc, char **argv)
 {
+  std::cout << "Detect Box Node wake up\n";
+
   const std::string filepath = get_filepath(argv[0]);
 
   Weight_handle::load_weight(filepath + "/include/weight_data/adaboost_box_weight.txt", A, normalizer);

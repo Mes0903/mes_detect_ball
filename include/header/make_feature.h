@@ -135,12 +135,12 @@ std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> transform_to_feature(co
 }
 */
 
-std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> transform_to_feature(const Eigen::MatrixXd &xy_data)    // xy_data is 720*2
+std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> section_to_feature(const Eigen::MatrixXd &xy_data)    // xy_data is 720*2
 {
   Eigen::MatrixXd feature_data = Eigen::MatrixXd::Zero(1, 5);
   bool empty_flag = true;
 
-  std::vector<Eigen::MatrixXd> section_seg_vec = do_section_segment(xy_data);    // 那一秒切出來的所有 segment
+  std::vector<Eigen::MatrixXd> section_seg_vec = section_to_segment(xy_data);    // 那一秒切出來的所有 segment
 
   for (const auto &Seg : section_seg_vec) {
     Eigen::VectorXd single_feature = make_feature(Seg);
