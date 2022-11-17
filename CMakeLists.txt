@@ -76,7 +76,7 @@ target_link_libraries(
 
 if(UNIX)
   add_executable(Detect_Ball
-    ./src/detect_box.cpp
+    ./src/detect_ball.cpp
     ${CLASS_DEF}
   )
 
