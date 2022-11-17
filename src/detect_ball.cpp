@@ -123,9 +123,9 @@ int main([[maybe_unused]] int argc, char **argv)
 
   ros::Subscriber sub = n.subscribe<sensor_msgs::LaserScan>("/scan", 1000, scanCallback);
 
-  marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
+  marker_pub = n.advertise<visualization_msgs::Marker>("Ball_Marker", 1);
 
-  markerArray_pub = n.advertise<visualization_msgs::MarkerArray>("visualization_markerArray", 1000);
+  markerArray_pub = n.advertise<visualization_msgs::MarkerArray>("Ball_MarkerArr", 1000);
 
   init_marker();
 

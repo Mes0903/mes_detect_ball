@@ -96,8 +96,8 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
       const Eigen::MatrixXd &M = segment_vec[i];
       std::cout << "Box is at: [" << M(0, 0) << ", " << M(0, 1) << "]\n";
 
-      marker.pose.position.x = x;
-      marker.pose.position.y = y;
+      marker.pose.position.x = M(0, 0);
+      marker.pose.position.y = M(0, 1);
       marker_pub.publish(marker);
     }
   }
@@ -123,11 +123,9 @@ int main([[maybe_unused]] int argc, char **argv)
 
   ros::Subscriber sub = n.subscribe<sensor_msgs::LaserScan>("/scan", 1000, scanCallback);
 
-  ros::Timer timer1 = n.createTimer(ros::Duration(0.1), callback1);
+  marker_pub = n.advertise<visualization_msgs::Marker>("Box_Marker", 1);
 
-  marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
-
-  markerArray_pub = n.advertise<visualization_msgs::MarkerArray>("visualization_markerArray", 1000);
+  markerArray_pub = n.advertise<visualization_msgs::MarkerArray>("Box_MarkerArr", 1000);
 
   init_marker();
 
