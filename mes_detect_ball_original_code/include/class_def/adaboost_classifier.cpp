@@ -1,12 +1,28 @@
+/**
+ * @file adaboost_classifier.cpp
+ * @author Mes
+ * @brief The implementation of the Adaboost.
+ * @version 0.1
+ * @date 2022-11-17
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
+
 #include "adaboost_classifier.h"
 #include "normalize.h"
 #include <cmath>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <random>
 #include <Eigen/Eigen>
 
+/**
+ * @brief Training Adaboost.
+ *
+ * @param train_X The training data, which is a feature matrix.
+ * @param train_Y The training label.
+ */
 void Adaboost::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y)
 {
   Eigen::VectorXd w = Eigen::VectorXd::Ones(train_X.rows());
@@ -14,9 +30,10 @@ void Adaboost::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_
   for (int i = 0; i < M; ++i)
   {
     w /= w.sum();
-    const auto [pred_Y, err] = T[i].fit(train_X, train_Y, w, 1500);
+    const auto [pred_Y, err, all_correct] = T[i].fit(train_X, train_Y, w, 1500); // pred_Y is the label it predict, err is the error rate.
 
-    if (err == 1.0)
+    // if the accuracy is 100%, we can delete all the other weak learner in adaboost, just use this weak learner to judge data.
+    if (all_correct)
     {
       auto tmp = T[i];
       T.clear();
@@ -37,17 +54,29 @@ void Adaboost::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_
   }
 }
 
-Eigen::VectorXd Adaboost::predict(const Eigen::MatrixXd &test_X)
+/**
+ * @brief Make the prediction of the data.
+ *
+ * @param data The data need to be predicted, which is a feature matrix.
+ * @return Eigen::VectorXd The output label vector.
+ */
+Eigen::VectorXd Adaboost::predict(const Eigen::MatrixXd &data)
 {
-  uint32_t R = test_X.rows();
+  uint32_t R = data.rows();
   Eigen::ArrayXd C(R);
   for (int m = 0; m < M; ++m)
-    C += alpha(m) * (2 * T[m].get_label(test_X).array() - 1);
+    C += alpha(m) * (2 * T[m].get_label(data).array() - 1);
 
   return C.unaryExpr([](double x)
                      { return double(x > 0); });
 }
 
+/**
+ * @brief Store the weight vector of all weak learner in Adaboost.
+ *
+ * @param filepath For Debug using, maybe unused. The file path, where to store the weight.
+ * @param outfile The file, where to store the weight, provided by the file handler.
+ */
 void Adaboost::store_weight([[maybe_unused]] const std::string filepath, std::ofstream &outfile)
 {
   outfile << static_cast<double>(TP) / (TP + FN) << ' ' << TN << ' ' << TP << ' ' << FN << ' ' << FP << '\n';
@@ -61,6 +90,12 @@ void Adaboost::store_weight([[maybe_unused]] const std::string filepath, std::of
   std::cout << "Successfly stored Adaboost weighting!\n";
 }
 
+/**
+ * @brief Store the weight vector of all weak learner in Adaboost.
+ *
+ * @param filepath For Debug using, maybe unused. The file path, where to load the weight.
+ * @param outfile The file, where to load the weight, provided by the file handler.
+ */
 void Adaboost::load_weight([[maybe_unused]] const std::string filepath, std::ifstream &infile)
 {
   std::string line;
@@ -96,6 +131,13 @@ void Adaboost::load_weight([[maybe_unused]] const std::string filepath, std::ifs
   }
 }
 
+/**
+ * @brief Calculate the confusion table.
+ *
+ * @param y The label of the data.
+ * @param pred_Y The predicted output of the data.
+ * @return Eigen::MatrixXd The confusion table.
+ */
 Eigen::MatrixXd Adaboost::cal_confusion_matrix(const Eigen::VectorXd &y, const Eigen::VectorXd &pred_Y)
 {
   uint32_t R = y.size();
@@ -112,7 +154,7 @@ Eigen::MatrixXd Adaboost::cal_confusion_matrix(const Eigen::VectorXd &y, const E
       ++FN;
   }
 
-  Eigen::MatrixXd outMatrix(2, 2);
-  outMatrix << TP, FP, FN, TN;
-  return outMatrix;
+  Eigen::MatrixXd confusion(2, 2);
+  confusion << TP, FP, FN, TN;
+  return confusion;
 }

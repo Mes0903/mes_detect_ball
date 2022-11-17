@@ -2,7 +2,16 @@
 #ifndef __LABEL_H
 #define __LABEL_H
 
-// this file havent be used
+/**
+ * @file label.h
+ * @author Mes
+ * @brief labeling, THIS FILE DIDN'T BE USED!! I USED MATLAB TO LABEL NOW.
+ * @version 0.1
+ * @date 2022-11-17
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 
 #include <Eigen/Eigen>
 

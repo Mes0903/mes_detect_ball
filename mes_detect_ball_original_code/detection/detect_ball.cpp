@@ -7,7 +7,6 @@
 #include "std_msgs/String.h"
 
 #include "adaboost_classifier.h"
-#include "load_matrix.h"
 #include "make_feature.h"
 #include "weak_learner.h"
 #include "segment.h"
@@ -16,10 +15,13 @@
 
 #include <iostream>
 #include <Eigen/Dense>
+#include <cmath>
 #include <limits>
 
-Normalizer normalizer;
+// this is detect ball.cpp
+
 Adaboost A;
+Normalizer normalizer;
 
 visualization_msgs::Marker marker;
 uint32_t shape = visualization_msgs::Marker::CYLINDER;
@@ -124,9 +126,10 @@ int main([[maybe_unused]] int argc, char **argv)
   const std::string filepath = get_filepath(argv[0]);
   Weight_handle::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A, normalizer);
 
-  ros::init(argc, argv, "Detect_Box_Node");
+  ros::init(argc, argv, "Detect_Ball_Node");
 
   ros::NodeHandle n;
+
   ros::Subscriber sub = n.subscribe<sensor_msgs::LaserScan>("/scan", 1000, scanCallback);
 
   ros::Timer timer1 = n.createTimer(ros::Duration(0.1), callback1);
@@ -136,5 +139,6 @@ int main([[maybe_unused]] int argc, char **argv)
   markerArray_pub = n.advertise<visualization_msgs::MarkerArray>("visualization_markerArray", 1000);
 
   init_marker();
+
   ros::spin();
 }

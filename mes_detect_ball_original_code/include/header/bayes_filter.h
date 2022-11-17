@@ -2,11 +2,29 @@
 #ifndef __BAYES_FILTER
 #define __BAYES_FILTER
 
+/**
+ * @file bayes_filter.h
+ * @author Mes
+ * @brief calculate the bayes filter
+ * @version 0.1
+ * @date 2022-11-17
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
+
 #include "segment.h"
 #include <Eigen/Eigen>
 
 extern Adaboost A;
 
+/**
+ * @brief
+ *
+ * @param buffer
+ * @param Seg
+ * @return int
+ */
 int IsSegInBuffer(const Eigen::MatrixXd &buffer, const Eigen::MatrixXd &Seg)
 {
   double x_mean = Seg.col(0).sum() / (Seg.rows());
@@ -25,6 +43,17 @@ int IsSegInBuffer(const Eigen::MatrixXd &buffer, const Eigen::MatrixXd &Seg)
 }
 
 // buffer 存 label 出現 1 的 seg 的質心座標 + 是 1 的機率 [x,y,p]
+/**
+ * @brief
+ *
+ * @param T
+ * @param Z
+ * @param p1
+ * @param p0
+ * @param xy_data
+ * @param buffer
+ * @return Eigen::MatrixXd
+ */
 Eigen::MatrixXd Bayes_filter(const Eigen::MatrixXd &T, const Eigen::MatrixXd &Z,
                              double p1, double p0, const Eigen::MatrixXd &xy_data, Eigen::MatrixXd &buffer)
 {

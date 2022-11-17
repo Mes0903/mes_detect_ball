@@ -2,6 +2,14 @@
 #ifndef __MAKE_FEATURES
 #define __MAKE_FEATURES
 
+/**
+ * @file make_feature.h
+ * @author Mes
+ * @brief calculate the feature of the matrix, THIS FILE DIDN'T BE USED!!! I USE MATLAB TO MAKE THE FEATURE NOW.
+ * @version 0.1
+ * @date 2022-11-17
+ */
+
 #include "segment.h"
 
 #include <vector>
@@ -9,6 +17,13 @@
 #include <cmath>
 #include <Eigen/Eigen>
 
+/**
+ * @brief Append a row to the matrix.
+ *
+ * @param A The target matrix wanna append a row.
+ * @param B The vector would be appended.
+ * @return Eigen::MatrixXd The result matrix after complete appending.
+ */
 Eigen::MatrixXd AppendRow(const Eigen::MatrixXd &A, const Eigen::VectorXd &B)
 {
   Eigen::MatrixXd D(A.rows() + 1, A.cols());
@@ -16,6 +31,12 @@ Eigen::MatrixXd AppendRow(const Eigen::MatrixXd &A, const Eigen::VectorXd &B)
   return D;
 }
 
+/**
+ * @brief Calculate the point of the segment
+ *
+ * @param data the segment
+ * @return uint32_t
+ */
 uint32_t cal_point(const Eigen::MatrixXd &data)
 {
   return data.rows();

@@ -1,5 +1,15 @@
+/**
+ * @file training_ball.cpp
+ * @author Mes
+ * @brief Traning the Adaboost to classified if an object is an box, then stored the weighting.
+ * @version 0.1
+ * @date 2022-11-17
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
+
 #include "adaboost_classifier.h"
-#include "load_matrix.h"
 #include "make_feature.h"
 #include "weak_learner.h"
 #include "segment.h"
@@ -29,16 +39,16 @@ int main([[maybe_unused]] int argc, char **argv)
 
   /* fitting */
   puts("read training data...");
-  Eigen::MatrixXd train_X = readDataSet(filepath + "/include/dataset/box_train_xn.txt", 2888, 5); // file, row, col
+  Eigen::MatrixXd train_X = Load_Matrix::readDataSet(filepath + "/include/dataset/box_train_xn_2.txt", 2888, 5); // file, row, col
 
   puts("reading testing data...");
-  Eigen::MatrixXd test_X = readDataSet(filepath + "/include/dataset/box_test_xn.txt", 1238, 5);
+  Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/box_test_xn_2.txt", 1238, 5);
 
   puts("reading training label...");
-  Eigen::VectorXd train_Y = readLabel(filepath + "/include/dataset/box_train_yn.txt", 2888); // file, segment num(row)
+  Eigen::VectorXd train_Y = Load_Matrix::readLabel(filepath + "/include/dataset/box_train_yn_2.txt", 2888); // file, segment num(row)
 
   puts("reading testing label...");
-  Eigen::VectorXd test_Y = readLabel(filepath + "/include/dataset/box_test_yn.txt", 1238);
+  Eigen::VectorXd test_Y = Load_Matrix::readLabel(filepath + "/include/dataset/box_test_yn_2.txt", 1238);
 
   if (case_num == 1)
   {

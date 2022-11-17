@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(mes_detect_ball)
 
-# C++ edition : C++20
+# C++ edition : C++17 (for ros, ros haven't supports C++20 now)
 set(CMAKE_CXX_STANDARD 20)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -38,6 +38,7 @@ endif(UNIX)
 # Project header
 set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/include/header)
 set(DATA_SETS ${PROJECT_SOURCE_DIR}/include/dataset)
+set(DETECTION_DIR ${PROJECT_SOURCE_DIR}/detection)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
@@ -49,7 +50,10 @@ include_directories(
 # Definition of headers
 aux_source_directory(./lib_def LIB_DEF)
 
-# 
+# Training executable file directories.
+add_subdirectory(${DETECTION_DIR})
+
+# Training executable file.
 add_executable(Training_Ball
   ./src/training_ball.cpp
   ${LIB_DEF}
@@ -71,29 +75,3 @@ target_link_libraries(
   ${catkin_LIBRARIES}
   ${Eigen3_LIBRARIES}
 )
-
-# for ROS detection
-
-if(__WIN32__)
-  add_executable(Detect_Ball
-    ./src/main.cpp
-    ${LIB_DEF}
-  )
-
-  target_link_libraries(
-    Detect_Ball
-    ${catkin_LIBRARIES}
-    ${Eigen3_LIBRARIES}
-  )
-
-  add_executable(Detect_BOX
-  ./src/detect_box.cpp
-  ${LIB_DEF}
-  )
-
-  target_link_libraries(
-    Detect_BOX
-    ${catkin_LIBRARIES}
-    ${Eigen3_LIBRARIES}
-  )
-endif(__WIN32__)
