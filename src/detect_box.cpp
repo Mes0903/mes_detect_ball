@@ -29,7 +29,7 @@ void init_marker()
 {
   // Initialize maker's setting.
   // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-  marker.header.frame_id = "base_scan";
+  marker.header.frame_id = "laser_link";
   marker.header.stamp = ros::Time::now();
 
   // Set the namespace and id for this marker.  This serves to create a unique ID
@@ -54,8 +54,8 @@ void init_marker()
   marker.pose.orientation.w = 1.0;
 
   // Set the scale of the marker -- 1x1x1 here means 1m on a side
-  marker.scale.x = 0.1;
-  marker.scale.y = 0.1;
+  marker.scale.x = 0.2;
+  marker.scale.y = 0.2;
   marker.scale.z = 0.2;
 
   // Set the color -- be sure to set alpha to something non-zero!
@@ -80,10 +80,10 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
     data(i, 1) = scan->ranges[i] * std::sin(scan->angle_min + scan->angle_increment * i);
   }
 
-  data = normalizer.transform(data);
-
   // 切分段
   const auto [feature_matrix, segment_vec] = transform_to_feature(data);    // segment_vec is std::vector<Eigen::MatrixXd>
+
+  feature_matrix = normalizer.transform(feature_matrix);
 
   // prediction
   Eigen::VectorXd pred_Y = A.predict(feature_matrix);    // input 等等是 xy，所以要轉 feature
