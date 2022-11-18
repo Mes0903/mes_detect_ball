@@ -1,7 +1,7 @@
 
 /**
  * @file normalize.cpp
- * @author Mes
+ * @author Mes (mes900903@gmail.com) (Discord: Mes#0903)
  * @brief This is the implementation of class Normalizer
  * @version 0.1
  * @date 2022-11-17
@@ -32,10 +32,11 @@ void Normalizer::fit(const Eigen::MatrixXd &data)
   data_min = Eigen::VectorXd::Zero(COLS);
   data_mm = Eigen::VectorXd::Zero(COLS);
 
-  for (int i = 0; i < COLS; ++i) {
+  for (int i = 0; i < COLS; ++i)
+  {
     data_min(i) = data.col(i).minCoeff();
-    data_mm(i) = data.col(i).maxCoeff() - data_min(i);    // max - min
-    if (data_mm(i) == 0)    // if max-min is 0, it can't be division, thus assign it to 1
+    data_mm(i) = data.col(i).maxCoeff() - data_min(i); // max - min
+    if (data_mm(i) == 0)                               // if max-min is 0, it can't be division, thus assign it to 1
       data_mm(i) = 1;
   }
 }
@@ -69,10 +70,10 @@ void Normalizer::store_weight([[maybe_unused]] const std::string filepath, std::
 
   outfile << data_min.size() << ' ' << data_mm.size() << '\n';
   for (int i = 0; i < data_min.size(); ++i)
-    outfile << data_min(i) << " \n"[i == data_min.size() - 1];    // if the element is the last element, store '\n', otherwise a space ' '
+    outfile << data_min(i) << " \n"[i == data_min.size() - 1]; // if the element is the last element, store '\n', otherwise a space ' '
 
   for (int i = 0; i < data_mm.size(); ++i)
-    outfile << data_mm(i) << " \n"[i == data_mm.size() - 1];    // if the element is the last element, store '\n', otherwise a space ' '
+    outfile << data_mm(i) << " \n"[i == data_mm.size() - 1]; // if the element is the last element, store '\n', otherwise a space ' '
 
   std::cout << "Successfly stored normalizer!\n";
 }
@@ -93,8 +94,8 @@ void Normalizer::load_weight([[maybe_unused]] const std::string filepath, std::i
   stream >> min_size >> mm_size;
   CLEAN_STREAM;
 
-  data_min = Eigen::VectorXd::Zero(min_size);    // resize
-  data_mm = Eigen::VectorXd::Zero(mm_size);    // resize
+  data_min = Eigen::VectorXd::Zero(min_size); // resize
+  data_mm = Eigen::VectorXd::Zero(mm_size);   // resize
   getline(infile, line);
   stream << line;
   for (int i = 0; i < min_size; ++i)

@@ -54,7 +54,7 @@ double cal_std(const Eigen::MatrixXd &Seg)
   if (n < 2)
     return 0.0;
 
-  Eigen::Vector2d m = Seg.colwise().mean();    // the means vector of data
+  Eigen::Vector2d m = Seg.colwise().mean(); // the means vector of data
   const auto &x = Seg.col(0);
   const auto &y = Seg.col(1);
 
@@ -101,7 +101,7 @@ std::pair<double, double> cal_cr(const Eigen::MatrixXd &Seg)
   double radius = std::sqrt(std::pow(xc, 2) + std::pow(yc, 2) - x_p(2));
   auto circularity = ((radius - ((xc - x.array()).square() + (yc - y.array()).square()).sqrt()).square()).sum();
 
-  return { radius, circularity };
+  return {radius, circularity};
 }
 
 /**
@@ -128,26 +128,29 @@ Eigen::VectorXd make_feature(const Eigen::MatrixXd &Seg)
  * @param xy_data The section xy data. On my minibots, the matrix is 720*2
  * @return std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> feature matrix and a vector containing all the segments in one second.
  */
-std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> section_to_feature(const Eigen::MatrixXd &xy_data)    // xy_data is 720*2
+std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> section_to_feature(const Eigen::MatrixXd &xy_data) // xy_data is 720*2
 {
   Eigen::MatrixXd feature_data = Eigen::MatrixXd::Zero(1, 5);
   bool empty_flag = true;
 
-  std::vector<Eigen::MatrixXd> section_seg_vec = section_to_segment(xy_data);    // 那一秒切出來的所有 segment
+  std::vector<Eigen::MatrixXd> section_seg_vec = section_to_segment(xy_data); // 那一秒切出來的所有 segment
 
-  for (const auto &Seg : section_seg_vec) {
+  for (const auto &Seg : section_seg_vec)
+  {
     Eigen::VectorXd single_feature = make_feature(Seg);
 
-    if (empty_flag) {
+    if (empty_flag)
+    {
       feature_data += single_feature.transpose();
       empty_flag = false;
     }
-    else {
+    else
+    {
       feature_data = AppendRow(feature_data, single_feature);
     }
   }
 
-  return { feature_data, section_seg_vec };
+  return {feature_data, section_seg_vec};
 }
 
 #endif

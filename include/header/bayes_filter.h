@@ -26,9 +26,10 @@ int IsSegInBuffer(const Eigen::MatrixXd &buffer, const Eigen::MatrixXd &Seg)
 {
   double x_mean = Seg.col(0).sum() / (Seg.rows());
   double y_mean = Seg.col(1).sum() / (Seg.rows());
-  int distance = 10;    // hyperparameter
+  int distance = 10; // hyperparameter
   double x, y;
-  for (int i = 0; i < buffer.size(); i++) {
+  for (int i = 0; i < buffer.size(); i++)
+  {
     x = buffer(i, 0);
     y = buffer(i, 1);
     if (std::sqrt(std::pow((x - x_mean), 2) + std::pow((y - y_mean), 2)) < distance)
@@ -59,10 +60,13 @@ Eigen::MatrixXd Bayes_filter(const Eigen::MatrixXd &T, const Eigen::MatrixXd &Z,
   Eigen::VectorXd U;
   int index;
   double p, eta;
-  for (int i = 0; i < S_n; i++) {
+  for (int i = 0; i < S_n; i++)
+  {
     index = IsSegInBuffer(buffer, Seg(i));
-    if (A.predict(Seg[i]) == 1) {
-      if (index != -1) {
+    if (A.predict(Seg[i]) == 1)
+    {
+      if (index != -1)
+      {
         // iteration of Bayes filter
         p = buffer(index, 2);
         V << p, 1 - p;
@@ -71,17 +75,20 @@ Eigen::MatrixXd Bayes_filter(const Eigen::MatrixXd &T, const Eigen::MatrixXd &Z,
         eta = 1 / V.sum();
         V = V * eta;
 
-        buffer(index, 0) = Seg[i].col(0).sum() / (Seg[i].rows());    // Seg(S_n)的質心的x座標
-        buffer(index, 1) = Seg[i].col(1).sum() / (Seg[i].rows());    // Seg(S_n)的質心的y座標
+        buffer(index, 0) = Seg[i].col(0).sum() / (Seg[i].rows()); // Seg(S_n)的質心的x座標
+        buffer(index, 1) = Seg[i].col(1).sum() / (Seg[i].rows()); // Seg(S_n)的質心的y座標
         buffer(index, 2) = V(0);
       }
-      else {
-        p = Z(0, 0) * p1 / (Z(0, 0) * p1 + Z(1, 0) * p0);    // first probability P( x0 | Z0 )
-                                                             // code: 在buffer下加一row存 [Seg(S_n)的x座標, Seg(S_n)的y座標, p]
+      else
+      {
+        p = Z(0, 0) * p1 / (Z(0, 0) * p1 + Z(1, 0) * p0); // first probability P( x0 | Z0 )
+                                                          // code: 在buffer下加一row存 [Seg(S_n)的x座標, Seg(S_n)的y座標, p]
       }
     }
-    else {
-      if (index != -1) {
+    else
+    {
+      if (index != -1)
+      {
         // iteration of Bayes filter
         p = buffer(index, 2);
         V << p, 1 - p;

@@ -13,7 +13,8 @@
 #include <tuple>
 #include <Eigen/Eigen>
 
-namespace metric {
+namespace metric
+{
   /**
    * @brief Calculate the confusion table.
    *
@@ -26,7 +27,8 @@ namespace metric {
     uint32_t R = y.size();
     uint32_t TP{}, FP{}, FN{}, TN{};
 
-    for (uint32_t i = 0; i < R; ++i) {
+    for (uint32_t i = 0; i < R; ++i)
+    {
       if (y(i) == 0 && pred_Y(i) == 0)
         ++TN;
       else if (y(i) == 0 && pred_Y(i) == 1)
@@ -41,6 +43,6 @@ namespace metric {
     confusion << TP, FP, FN, TN;
     return confusion;
   }
-}    // namespace metric
+} // namespace metric
 
 #endif

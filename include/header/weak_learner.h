@@ -18,21 +18,22 @@
 /**
  * @brief The weak learner in Adaboost.
  */
-class weak_learner {
+class weak_learner
+{
 public:
-  double w0;    // w0 in the weight vector
-  Eigen::VectorXd w;    // the weight vector
+  double w0;         // w0 in the weight vector
+  Eigen::VectorXd w; // the weight vector
 
 public:
-  std::tuple<Eigen::VectorXd, double, bool> fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y, const Eigen::MatrixXd &train_weight, uint32_t Iterations);    // training
+  std::tuple<Eigen::VectorXd, double, bool> fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y, const Eigen::MatrixXd &train_weight, uint32_t Iterations); // training
 
-  Eigen::ArrayXd logistic(const Eigen::ArrayXd &x);    // logistic function
-  Eigen::VectorXd get_label(const Eigen::MatrixXd &section);    // get the label of the section
-  Eigen::VectorXd predict(const Eigen::MatrixXd &section);    // predict the section data
+  Eigen::ArrayXd logistic(const Eigen::ArrayXd &x);          // logistic function
+  Eigen::VectorXd get_label(const Eigen::MatrixXd &section); // get the label of the section
+  Eigen::VectorXd predict(const Eigen::MatrixXd &section);   // predict the section data
 
 public:
-  void store_weight(std::ofstream &outfile);    // store the weight vector
-  void load_weight(std::ifstream &infile, std::stringstream &stream);    // load the weight vector
+  void store_weight(std::ofstream &outfile);                          // store the weight vector
+  void load_weight(std::ifstream &infile, std::stringstream &stream); // load the weight vector
 };
 
 #endif

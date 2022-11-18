@@ -8,6 +8,7 @@
  */
 
 #include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 #include "nav_msgs/Odometry.h"
 #include "ros/ros.h"
 #include "sensor_msgs/Imu.h"
@@ -25,12 +26,12 @@
 #include <Eigen/Dense>
 #include <limits>
 
-Adaboost A;
-Normalizer normalizer;
+static Adaboost A;
+static Normalizer normalizer;
 
 visualization_msgs::Marker marker;
 uint32_t shape = visualization_msgs::Marker::SPHERE;
-ros::Publisher marker_pub;
+ros::Publisher markerArray_pub;
 
 void init_marker()
 {
@@ -77,35 +78,45 @@ void init_marker()
 
 void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 {
+  visualization_msgs::MarkerArray markerArray;
+
   const int ROW = 720;
   Eigen::MatrixXd data(ROW, 2);
 
-  for (int i = 0; i < ROW; i++) {
+  for (int i = 0; i < ROW; i++)
+  {
     data(i, 0) = scan->ranges[i] * std::cos(scan->angle_min + scan->angle_increment * i);
     data(i, 1) = scan->ranges[i] * std::sin(scan->angle_min + scan->angle_increment * i);
   }
 
   // 切分段
-  auto [feature_matrix, segment_vec] = section_to_feature(data);    // segment_vec is std::vector<Eigen::MatrixXd>
+  auto [feature_matrix, segment_vec] = section_to_feature(data); // segment_vec is std::vector<Eigen::MatrixXd>
 
   feature_matrix = normalizer.transform(feature_matrix);
 
   // prediction
-  Eigen::VectorXd pred_Y = A.predict(feature_matrix);    // input 等等是 xy，所以要轉 feature
+  Eigen::VectorXd pred_Y = A.predict(feature_matrix); // input 等等是 xy，所以要轉 feature
   bool detect_flag = false;
 
-  for (int i = 0; i < pred_Y.size(); ++i) {
-    if (pred_Y(i) == 1) {
+  for (int i = 0; i < pred_Y.size(); ++i)
+  {
+    if (pred_Y(i) == 1)
+    {
       detect_flag = true;
 
-      const Eigen::MatrixXd &M = segment_vec[i];
+      const Eigen::MatrixXd &M = segment_vec[i].colwise().mean();
       std::cout << "Ball is at: [" << M(0, 0) << ", " << M(0, 1) << "]\n";
 
       marker.pose.position.x = M(0, 0);
       marker.pose.position.y = M(0, 1);
-      marker_pub.publish(marker);
+      markerArray.markers.push_back(marker);
     }
   }
+
+  for (long unsigned int i = 0; i < markerArray.markers.size(); ++i)
+    markerArray.markers[i].id = i;
+
+  markerArray_pub.publish(markerArray);
 
   if (detect_flag)
     std::cout << "---------------------------------\n";
@@ -123,9 +134,9 @@ int main([[maybe_unused]] int argc, char **argv)
 
   ros::NodeHandle n;
 
-  ros::Subscriber sub = n.subscribe<sensor_msgs::LaserScan>("/scan", 1000, scanCallback);
+  ros::Subscriber sub = n.subscribe<sensor_msgs::LaserScan>("/scan", 1, scanCallback);
 
-  marker_pub = n.advertise<visualization_msgs::Marker>("Ball_Marker", 1);
+  markerArray_pub = n.advertise<visualization_msgs::MarkerArray>("Ball_MarkerArray", 1);
 
   init_marker();
 
