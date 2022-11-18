@@ -4,13 +4,10 @@
 
 /**
  * @file segment.h
- * @author Mes
+ * @author Mes (mes900903@gmail.com) (Discord: Mes#0903)
  * @brief Classify the xy data into segments data. I JUST USE THIS FILE FOR CLASSFIED ROBOT DETECTION MATRIX, TRAINING DATA AND TEST DATA I USED MATLAB TO CLASSIFIED SEGMENT.
  * @version 0.1
  * @date 2022-11-17
- *
- * @copyright Copyright (c) 2022
- *
  */
 
 #include <vector>

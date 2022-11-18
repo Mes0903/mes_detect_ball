@@ -2,6 +2,14 @@
 #ifndef __METRIC_H__
 #define __METRIC_H__
 
+/**
+ * @file metric.h
+ * @author Mes (mes900903@gmail.com) (Discord: Mes#0903)
+ * @brief The metric related functions.
+ * @version 0.1
+ * @date 2022-11-18
+ */
+
 #include <tuple>
 #include <Eigen/Eigen>
 

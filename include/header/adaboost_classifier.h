@@ -4,13 +4,10 @@
 
 /**
  * @file adaboost_classifier.h
- * @author Mes
+ * @author Mes (mes900903@gmail.com) (Discord: Mes#0903)
  * @brief The declaration of Adaboost class
  * @version 0.1
  * @date 2022-11-17
- *
- * @copyright Copyright (c) 2022
- *
  */
 
 #include "weak_learner.h"

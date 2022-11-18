@@ -27,14 +27,12 @@ void Adaboost::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_
 {
   Eigen::VectorXd w = Eigen::VectorXd::Ones(train_X.rows());
 
-  for (int i = 0; i < M; ++i)
-  {
+  for (int i = 0; i < M; ++i) {
     w /= w.sum();
-    const auto [pred_Y, err, all_correct] = T[i].fit(train_X, train_Y, w, 1500); // pred_Y is the label it predict, err is the error rate.
+    const auto [pred_Y, err, all_correct] = T[i].fit(train_X, train_Y, w, 1500);    // pred_Y is the label it predict, err is the error rate.
 
     // if the accuracy is 100%, we can delete all the other weak learner in adaboost, just use this weak learner to judge data.
-    if (all_correct)
-    {
+    if (all_correct) {
       auto tmp = T[i];
       T.clear();
       T.push_back(std::move(tmp));
@@ -44,8 +42,7 @@ void Adaboost::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_
     }
 
     alpha(i) = std::log((1 + err) / (1 - err)) / 2;
-    for (int r = 0; r < train_Y.size(); ++r)
-    {
+    for (int r = 0; r < train_Y.size(); ++r) {
       if (train_Y(r) != pred_Y(r))
         w(r) *= std::exp(alpha(i));
       else
@@ -67,8 +64,7 @@ Eigen::VectorXd Adaboost::predict(const Eigen::MatrixXd &data)
   for (int m = 0; m < M; ++m)
     C += alpha(m) * (2 * T[m].get_label(data).array() - 1);
 
-  return C.unaryExpr([](double x)
-                     { return double(x > 0); });
+  return C.unaryExpr([](double x) { return double(x > 0); });
 }
 
 /**
@@ -127,8 +123,7 @@ void Adaboost::load_weight([[maybe_unused]] const std::string filepath, std::ifs
   stream.clear();
 
   T.resize(M);
-  for (int i = 0; i < M; ++i)
-  {
+  for (int i = 0; i < M; ++i) {
     T[i].load_weight(infile, stream);
     stream.str("");
     stream.clear();

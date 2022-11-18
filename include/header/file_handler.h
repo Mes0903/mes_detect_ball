@@ -2,6 +2,14 @@
 #ifndef __FILE_HANDLER_H__
 #define __FILE_HANDLER_H__
 
+/**
+ * @file file_handler.h
+ * @author Mes (mes900903@gmail.com) (Discord: Mes#0903)
+ * @brief Load the file and store weights to file, any functions related to file operations should be here.
+ * @version 0.1
+ * @date 2022-11-18
+ */
+
 #include <Eigen/Eigen>
 #include <string>
 #include <fstream>
@@ -79,7 +87,6 @@ namespace Load_Matrix {
     infile.close();
 
     puts("transforming data to xy data");
-    transform_to_xy(result, ROWS);
     return result;
   };
 

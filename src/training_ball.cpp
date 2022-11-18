@@ -2,11 +2,9 @@
  * @file training_ball.cpp
  * @author Mes
  * @brief Traning the Adaboost to classified if an object is an ball, then stored the weighting.
+ *        Execute it by command `rosrun mes_detect_ball Training_Ball` if you use ROS to build it.
  * @version 0.1
  * @date 2022-11-17
- *
- * @copyright Copyright (c) 2022
- *
  */
 
 #include "adaboost_classifier.h"

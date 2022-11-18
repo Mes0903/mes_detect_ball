@@ -4,14 +4,11 @@
 
 /**
  * @file normalize.h
- * @author Mes
+ * @author Mes (mes900903@gmail.com) (Discord: Mes#0903)
  * @brief Normalizer, which can normalize the data by min-max normalization.
  *        min-max normalization: (x - x_min) / (x_max - x_min)
  * @version 0.1
  * @date 2022-11-17
- *
- * @copyright Copyright (c) 2022
- *
  */
 
 #include <Eigen/Eigen>

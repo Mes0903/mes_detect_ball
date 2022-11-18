@@ -1,5 +1,13 @@
+/**
+ * @file detect_box.cpp
+ * @author Mes (mes900903@gmail.com) (Discord: Mes#0903)
+ * @brief Detect the box by minibots, this file is a ROS node.
+ *        Execute it by command `rosrun mes_detect_ball Detect_Box` if you use ROS to build it.
+ * @version 0.1
+ * @date 2022-11-18
+ */
+
 #include <visualization_msgs/Marker.h>
-#include <visualization_msgs/MarkerArray.h>
 #include "nav_msgs/Odometry.h"
 #include "ros/ros.h"
 #include "sensor_msgs/Imu.h"
@@ -17,13 +25,12 @@
 #include <Eigen/Dense>
 #include <limits>
 
-Normalizer normalizer;
 Adaboost A;
+Normalizer normalizer;
 
 visualization_msgs::Marker marker;
 uint32_t shape = visualization_msgs::Marker::CUBE;
 ros::Publisher marker_pub;
-ros::Publisher markerArray_pub;
 
 void init_marker()
 {
@@ -70,8 +77,6 @@ void init_marker()
 
 void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 {
-  visualization_msgs::MarkerArray markerArray;
-
   const int ROW = 720;
   Eigen::MatrixXd data(ROW, 2);
 
@@ -104,11 +109,6 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 
   if (detect_flag)
     std::cout << "---------------------------------\n";
-
-  for (long unsigned int i = 0; i < markerArray.markers.size(); ++i)
-    markerArray.markers[i].id = i;
-
-  markerArray_pub.publish(markerArray);
 }
 
 int main([[maybe_unused]] int argc, char **argv)
@@ -126,8 +126,6 @@ int main([[maybe_unused]] int argc, char **argv)
   ros::Subscriber sub = n.subscribe<sensor_msgs::LaserScan>("/scan", 1000, scanCallback);
 
   marker_pub = n.advertise<visualization_msgs::Marker>("Box_Marker", 1);
-
-  markerArray_pub = n.advertise<visualization_msgs::MarkerArray>("Box_MarkerArr", 1000);
 
   init_marker();
 
