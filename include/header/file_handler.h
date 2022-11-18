@@ -225,7 +225,7 @@ namespace Weight_handle
      * @param instances the parameter pack, class instances
      */
     template <typename T>
-    void __store_weight(const std::string filepath, std::ofstream &outfile, T &ins)
+    void store_weight_impl(const std::string filepath, std::ofstream &outfile, T &ins)
 #if __cplusplus >= 202002L
         requires can_store<T> // Check if the instance implemented the `store_weight` method by Detection Idioms(Concept requires)
 #endif
@@ -244,10 +244,10 @@ namespace Weight_handle
     }
 
     template <typename T, typename... A>
-    void __store_weight(const std::string filepath, std::ofstream &outfile, T &first, A &...instances)
+    void store_weight_impl(const std::string filepath, std::ofstream &outfile, T &first, A &...instances)
     {
-      __store_weight(filepath, outfile, first);
-      __store_weight(filepath, outfile, instances...);
+      store_weight_impl(filepath, outfile, first);
+      store_weight_impl(filepath, outfile, instances...);
     }
 
     /**
@@ -259,7 +259,7 @@ namespace Weight_handle
      * @param instances the parameter pack, class instances
      */
     template <typename T>
-    void __load_weight(const std::string filepath, std::ifstream &infile, T &ins)
+    void load_weight_impl(const std::string filepath, std::ifstream &infile, T &ins)
 #if __cplusplus >= 202002L
         requires can_load<T> // Check if the instance implemented the `load_weight` method by Detection Idioms(Concept requires)
 #endif
@@ -278,10 +278,10 @@ namespace Weight_handle
     }
 
     template <typename T, typename... A>
-    void __load_weight(const std::string filepath, std::ifstream &infile, T &first, A &...instances)
+    void load_weight_impl(const std::string filepath, std::ifstream &infile, T &first, A &...instances)
     {
-      __load_weight(filepath, infile, first);
-      __load_weight(filepath, infile, instances...);
+      load_weight_impl(filepath, infile, first);
+      load_weight_impl(filepath, infile, instances...);
     }
   } // namespace detail
 
@@ -342,7 +342,7 @@ namespace Weight_handle
       exit(1);
     }
 
-    detail::__store_weight(filepath, outfile, instances...);
+    detail::store_weight_impl(filepath, outfile, instances...);
 
     outfile.close();
   }
@@ -363,7 +363,7 @@ namespace Weight_handle
       exit(1);
     }
 
-    detail::__load_weight(filepath, infile, instances...);
+    detail::load_weight_impl(filepath, infile, instances...);
 
     infile.close();
   }
