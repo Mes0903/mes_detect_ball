@@ -83,9 +83,9 @@ double cal_width(const Eigen::MatrixXd &Seg)
  * @brief Calculate the circularity and the radius of the segment.
  *
  * @param Seg The segment data matrix. It's an Sn*2 matrix, Sn is the number of segments.
- * @return std::pair<double, double>
+ * @return std::tuple<double, double, double>
  */
-std::pair<double, double, double> cal_cr(const Eigen::MatrixXd &Seg)
+std::tuple<double, double, double> cal_cr(const Eigen::MatrixXd &Seg)
 {
   const auto &x = Seg.col(0);
   const auto &y = Seg.col(1);
@@ -107,7 +107,7 @@ std::pair<double, double, double> cal_cr(const Eigen::MatrixXd &Seg)
   return {radius, circularity, distance};
 }
 
-std::tuple<double, double, double> cal_linearity(Eigen::MatrixXd Seg) 
+std::tuple<double, double, double, double> cal_linearity(Eigen::MatrixXd Seg) 
 {
   Eigen::Vector2d m = Seg.colwise().mean();
   Seg.col(0) = Seg.col(0).array() - m(0);
@@ -147,7 +147,7 @@ Eigen::VectorXd make_feature(const Eigen::MatrixXd &Seg)
   feature(4) = cir;
   feature(5) = distance;
 
-  const auto [bounding_box_long, bounding_box_short, bounding_box_area, total_least_square] = cal_linearity(Seg); // bounding_box_long, bounding_box_short, total_least_square
+  const auto [bounding_box_long, bounding_box_short, bounding_box_area, total_least_square] = cal_linearity(Seg);
   feature(6) = bounding_box_long;
   feature(7) = bounding_box_short;
   feature(8) = bounding_box_area;

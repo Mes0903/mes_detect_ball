@@ -26,9 +26,11 @@ void Adaboost::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_
 
   for (int i = 0; i < M; ++i)
   {
+    std::cout << "Training Weak Learner: " << i + 1 << '\n';
     w /= w.sum();
-    const auto [pred_Y, err, all_correct] = T[i].fit(train_X, train_Y, w, 500); // pred_Y is the label it predict, err is the error rate.
-
+    
+    const auto [pred_Y, err, all_correct] = T[i].fit(train_X, train_Y, w, 1000); // pred_Y is the label it predict, err is the error rate.
+    
     // if the accuracy is 100%, we can delete all the other weak learner in adaboost, just use this weak learner to judge data.
     if (all_correct)
     {
@@ -39,7 +41,7 @@ void Adaboost::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_
       alpha = Eigen::VectorXd::Ones(M);
       break;
     }
-
+    
     alpha(i) = std::log((1 + err) / (1 - err)) / 2;
     for (int r = 0; r < train_Y.size(); ++r)
     {
