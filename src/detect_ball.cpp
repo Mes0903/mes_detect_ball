@@ -42,7 +42,7 @@ void init_marker()
 
   // Set the namespace and id for this marker.  This serves to create a unique ID
   // Any marker sent with the same namespace and id will overwrite the old one
-  marker.ns = "basic_shapes";
+  marker.ns = "Ball_detected_marker";
   marker.id = 0;
   // Set the marker type.  Initially this is CUBE, and cycles between that and SPHERE, ARROW, and CYLINDER
   marker.type = shape;
@@ -73,7 +73,7 @@ void init_marker()
   marker.color.a = 1.0;
 
   // Tag(LIFETIME)
-  marker.lifetime = ros::Duration();
+  marker.lifetime = ros::Duration(1);
 }
 
 void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
@@ -105,12 +105,16 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
       detect_flag = true;
 
       const Eigen::MatrixXd &M = segment_vec[i].colwise().mean();
-      std::cout << "Ball is at: [" << M(0, 0) << ", " << M(0, 1) << "]\n";
 
-      marker.pose.position.x = M(0, 0);
-      marker.pose.position.y = M(0, 1);
-      marker.header.stamp = scan->header.stamp;
-      markerArray.markers.push_back(marker);
+      if(std::sqrt(std::pow(M(0, 0), 2) + std::pow(M(0, 1), 2)) < 1.5) {
+
+        std::cout << "Ball is at: [" << M(0, 0) << ", " << M(0, 1) << "]\n";
+  
+        marker.pose.position.x = M(0, 0);
+        marker.pose.position.y = M(0, 1);
+        marker.header.stamp = scan->header.stamp;
+        markerArray.markers.push_back(marker);
+      }
     }
   }
 
