@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __BAYES_FILTER
-#define __BAYES_FILTER
+#ifndef BAYES_FILTER__
+#define BAYES_FILTER__
 
 /**
  * @file bayes_filter.h

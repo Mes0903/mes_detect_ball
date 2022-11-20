@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __NORMALIZER
-#define __NORMALIZER
+#ifndef NORMALIZER__
+#define NORMALIZER__
 
 /**
  * @file normalize.h

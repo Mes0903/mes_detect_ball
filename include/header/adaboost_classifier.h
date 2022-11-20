@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __ADABOOST_CLASSIFIER
-#define __ADABOOST_CLASSIFIER
+#ifndef ADABOOST_CLASSIFIER__
+#define ADABOOST_CLASSIFIER__
 
 /**
  * @file adaboost_classifier.h

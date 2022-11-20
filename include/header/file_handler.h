@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __FILE_HANDLER_H__
-#define __FILE_HANDLER_H__
+#ifndef FILE_HANDLER_H__
+#define FILE_HANDLER_H__
 
 /**
  * @file file_handler.h

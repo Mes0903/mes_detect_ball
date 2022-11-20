@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __WEAK_LEARNER
-#define __WEAK_LEARNER
+#ifndef WEAK_LEARNER__
+#define WEAK_LEARNER__
 
 /**
  * @file weak_learner.h

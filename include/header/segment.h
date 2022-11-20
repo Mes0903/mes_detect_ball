@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __SEGMENT
-#define __SEGMENT
+#ifndef SEGMENT__
+#define SEGMENT__
 
 /**
  * @file segment.h

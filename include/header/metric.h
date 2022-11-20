@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __METRIC_H__
-#define __METRIC_H__
+#ifndef METRIC_H__
+#define METRIC_H__
 
 /**
  * @file metric.h

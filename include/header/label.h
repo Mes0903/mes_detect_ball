@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __LABEL_H
-#define __LABEL_H
+#ifndef LABEL_H__
+#define LABEL_H__
 
 /**
  * @file label.h

@@ -79,7 +79,7 @@ void init_marker()
 void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 {
   visualization_msgs::MarkerArray markerArray;
-
+  
   const int ROW = 720;
   Eigen::MatrixXd data(ROW, 2);
 
@@ -109,6 +109,7 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 
       marker.pose.position.x = M(0, 0);
       marker.pose.position.y = M(0, 1);
+      marker.header.stamp = scan->header.stamp;
       markerArray.markers.push_back(marker);
     }
   }

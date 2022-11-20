@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __MAKE_FEATURES
-#define __MAKE_FEATURES
+#ifndef MAKE_FEATURES__
+#define MAKE_FEATURES__
 
 /**
  * @file make_feature.h
