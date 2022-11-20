@@ -2,6 +2,11 @@
 #ifndef FILE_HANDLER_H__
 #define FILE_HANDLER_H__
 
+#if _WIN32
+#define _USE_MATH_DEFINES
+#include <math.h>
+#endif
+
 /**
  * @file file_handler.h
  * @author Mes (mes900903@gmail.com) (Discord: Mes#0903)
@@ -139,8 +144,11 @@ namespace Load_Matrix
  * @param filepath the executable file path, which is argv[0].
  * @return std::string The project directory path
  */
-std::string get_filepath(const char *filepath)
+std::string get_filepath([[maybe_unused]] const char *filepath)
 {
+#if _WIN32
+  return "D:/document/GitHub/mes_detect_ball";
+#else
   std::string buf = filepath;
   std::string path;
 
@@ -186,6 +194,9 @@ std::string get_filepath(const char *filepath)
 #endif
 
   return path;
+
+#endif // __linux__
+
 }
 
 namespace Weight_handle
@@ -315,7 +326,7 @@ namespace Weight_handle
     infile.close();
 
     // compact the correct rate between storing file and current training data
-    uint32_t TP = confusion(0, 0), FP = confusion(0, 1), FN = confusion(1, 0), TN = confusion(1, 1);
+    uint32_t TP = static_cast<uint32_t>(confusion(0, 0)), FP = static_cast<uint32_t>(confusion(0, 1)), FN = static_cast<uint32_t>(confusion(1, 0)), TN = static_cast<uint32_t>(confusion(1, 1));
 
     double accuracy = static_cast<double>(TP + TN) / (TP + TN + FP + FN);
     double recall = static_cast<double>(TP) / (TP + FN);

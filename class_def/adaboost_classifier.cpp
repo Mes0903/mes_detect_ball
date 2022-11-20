@@ -139,10 +139,10 @@ void Adaboost::load_weight([[maybe_unused]] const std::string filepath, std::ifs
  */
 void Adaboost::set_confusion_matrix(const Eigen::MatrixXd &confusion_matrix)
 {
-  TP = confusion_matrix(0, 0);
-  FP = confusion_matrix(0, 1);
-  FN = confusion_matrix(1, 0);
-  TN = confusion_matrix(1, 1);
+  TP = static_cast<uint32_t>(confusion_matrix(0, 0));
+  FP = static_cast<uint32_t>(confusion_matrix(0, 1));
+  FN = static_cast<uint32_t>(confusion_matrix(1, 0));
+  TN = static_cast<uint32_t>(confusion_matrix(1, 1));
 }
 
 /**

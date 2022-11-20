@@ -10,13 +10,23 @@ endif()
 
 # On windwos, it need the compile flag -I\"D:\\Eigen\", in linux it can find package
 if(WIN32)
-  set(CMAKE_CXX_FLAGS "-I\"D:\\Eigen\" -Wall -Wextra")
+  set(EIGEN3_INCLUDE_DIRS D:/Eigen) # SET UR EIGEN Directory
+  if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    MESSAGE("==================== USING MSVC TO COMILE ====================")
+    set(CMAKE_CXX_FLAGS_DEBUG "/O2")
+    set(CMAKE_CXX_FLAGS_RELEASE "/O2")
+  else()
+    MESSAGE("==================== USING MINGW TO COMILE ====================")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wa,-mbig-obj") # mingw compile flag (the output was weird idk why).
+    set(CMAKE_CXX_FLAGS_DEBUG "-O3")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+  endif()
 else()
   set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+  set(CMAKE_CXX_FLAGS_DEBUG "-g -O3")
+  set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif(WIN32)
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # For ROS and catkin_make
 if(UNIX)
