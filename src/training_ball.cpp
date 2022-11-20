@@ -59,7 +59,7 @@ int main([[maybe_unused]] int argc, char **argv)
     for (int i = 0; i < sample; ++i)
     {
       puts("start tranning");
-      Adaboost A(100);
+      Adaboost A(1000);
       A.fit(train_X, train_Y);
 
       // prediction

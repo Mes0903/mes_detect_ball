@@ -28,8 +28,9 @@ public:
   double right_label;
 
 public:
-  void fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y, const Eigen::MatrixXd &train_weight); // training
+  std::tuple<Eigen::VectorXd, double, bool> fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y, const Eigen::MatrixXd &train_weight, int i); // training
   Eigen::VectorXd predict(const Eigen::MatrixXd &section);   // predict the section data
+  Eigen::VectorXd get_label(const Eigen::MatrixXd &section);
 
 public:
   void store_weight(std::ofstream &outfile);                          // store the weight vector

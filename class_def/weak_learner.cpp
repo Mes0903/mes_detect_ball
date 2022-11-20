@@ -29,7 +29,7 @@
  */
 
 
-void weak_learner::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y, const Eigen::MatrixXd &train_weight)
+std::tuple<Eigen::VectorXd, double, bool> weak_learner::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y, const Eigen::MatrixXd &train_weight, int i)
 {
   uint32_t D = train_X.cols(); // dimention is the column of training data, which is 5 in my case, since there is 5 features.
   static std::random_device rd;
@@ -50,6 +50,25 @@ void weak_learner::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &tr
   double right_weight_1=(right_weight*train_Y.array()).sum();
   left_label = left_weight_1 >= left_weight_0;
   right_label = right_weight_1 >= right_weight_0;
+
+  Eigen::VectorXd pred_Y = get_label(train_X);
+
+  double err = 0.0;
+  bool all_correct = true;
+  for (int i = 0; i < pred_Y.size(); ++i)
+  {
+    if (pred_Y(i) != train_Y(i))
+    {
+      all_correct = false;
+      err -= train_weight(i);
+    }
+    else
+    {
+      err += train_weight(i);
+    }
+  }
+
+  return {pred_Y, err, all_correct};
 }
 /**
  * @brief Make prediction of the data, this function is for debug using, it's output is not an label but an probability.
@@ -58,6 +77,13 @@ void weak_learner::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &tr
  * @return Eigen::VectorXd The probability of the data get from the logistic function.
  */
 Eigen::VectorXd weak_learner::predict(const Eigen::MatrixXd &data)
+{
+    Eigen::ArrayXd out = data.col(choose_idx).unaryExpr([this](double x)
+                                      { return double(x < choose_value); });
+  return out * left_label + (1 - out) * right_label;
+}
+
+Eigen::VectorXd weak_learner::get_label(const Eigen::MatrixXd &data)
 {
     Eigen::ArrayXd out = data.col(choose_idx).unaryExpr([this](double x)
                                       { return double(x < choose_value); });
