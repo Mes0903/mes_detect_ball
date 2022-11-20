@@ -17,6 +17,8 @@
 #include <cmath>
 #include <Eigen/Eigen>
 
+constexpr uint32_t FEATURE_NUM = 10;
+
 /**
  * @brief Append a row to the matrix.
  *
@@ -83,7 +85,7 @@ double cal_width(const Eigen::MatrixXd &Seg)
  * @param Seg The segment data matrix. It's an Sn*2 matrix, Sn is the number of segments.
  * @return std::pair<double, double>
  */
-std::pair<double, double> cal_cr(const Eigen::MatrixXd &Seg)
+std::pair<double, double, double> cal_cr(const Eigen::MatrixXd &Seg)
 {
   const auto &x = Seg.col(0);
   const auto &y = Seg.col(1);
@@ -99,9 +101,32 @@ std::pair<double, double> cal_cr(const Eigen::MatrixXd &Seg)
   auto yc = x_p(1);
 
   double radius = std::sqrt(std::pow(xc, 2) + std::pow(yc, 2) - x_p(2));
-  auto circularity = ((radius - ((xc - x.array()).square() + (yc - y.array()).square()).sqrt()).square()).sum();
+  double circularity = ((radius - ((xc - x.array()).square() + (yc - y.array()).square()).sqrt()).square()).sum();
+  double distance = std::sqrt(std::pow(xc, 2) + std::pow(yc, 2));
 
-  return {radius, circularity};
+  return {radius, circularity, distance};
+}
+
+std::tuple<double, double, double> cal_linearity(Eigen::MatrixXd Seg) 
+{
+  Eigen::Vector2d m = Seg.colwise().mean();
+  Seg.col(0) = Seg.col(0).array() - m(0);
+  Seg.col(1) = Seg.col(1).array() - m(1);
+
+  Eigen::BDCSVD<Eigen::MatrixXd> Seg_svd = Seg.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+  Eigen::MatrixXd U = Seg_svd.matrixU();
+  Eigen::MatrixXd V = Seg_svd.matrixV();
+  Eigen::MatrixXd A = Seg_svd.singularValues();
+
+  Eigen::ArrayXd P_long = Seg * V.col(0);
+  Eigen::ArrayXd P_short = Seg * V.col(1);
+
+  double bounding_box_long = P_long.maxCoeff() - P_long.minCoeff();
+  double bounding_box_short = P_short.maxCoeff() - P_short.minCoeff();
+  double bounding_box_area = bounding_box_short * bounding_box_long;
+  double total_least_square = P_short.square().mean();
+
+  return {bounding_box_long, bounding_box_short, bounding_box_area, total_least_square};
 }
 
 /**
@@ -112,15 +137,25 @@ std::pair<double, double> cal_cr(const Eigen::MatrixXd &Seg)
  */
 Eigen::VectorXd make_feature(const Eigen::MatrixXd &Seg)
 {
-  Eigen::VectorXd feature = Eigen::VectorXd::Zero(5);
+  Eigen::VectorXd feature = Eigen::VectorXd::Zero(FEATURE_NUM);
   feature(0) = cal_point(Seg);
   feature(1) = cal_std(Seg);
   feature(2) = cal_width(Seg);
-  const auto [r, cir] = cal_cr(Seg);
-  feature(3) = r, feature(4) = cir;
+
+  const auto [r, cir, distance] = cal_cr(Seg);
+  feature(3) = r;
+  feature(4) = cir;
+  feature(5) = distance;
+
+  const auto [bounding_box_long, bounding_box_short, bounding_box_area, total_least_square] = cal_linearity(Seg); // bounding_box_long, bounding_box_short, total_least_square
+  feature(6) = bounding_box_long;
+  feature(7) = bounding_box_short;
+  feature(8) = bounding_box_area;
+  feature(9) = total_least_square;
 
   return feature;
 }
+
 
 /**
  * @brief Transform the section xy data to the feature matrix.
@@ -130,7 +165,7 @@ Eigen::VectorXd make_feature(const Eigen::MatrixXd &Seg)
  */
 std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> section_to_feature(const Eigen::MatrixXd &xy_data) // xy_data is 720*2
 {
-  Eigen::MatrixXd feature_data = Eigen::MatrixXd::Zero(1, 5);
+  Eigen::MatrixXd feature_data = Eigen::MatrixXd::Zero(1, FEATURE_NUM);
   bool empty_flag = true;
 
   std::vector<Eigen::MatrixXd> section_seg_vec = section_to_segment(xy_data); // 那一秒切出來的所有 segment

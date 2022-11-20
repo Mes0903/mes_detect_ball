@@ -40,16 +40,16 @@ int main([[maybe_unused]] int argc, char **argv)
   {
     /* fitting */
     puts("read training data...");
-    Eigen::MatrixXd train_X = Load_Matrix::readDataSet(filepath + "/include/dataset/box_train_xn_2.txt", 50996, 5); // file, row, col
+    Eigen::MatrixXd train_X = Load_Matrix::readDataSet(filepath + "/include/dataset/box_train_x.txt", 50996, 5); // file, row, col
 
     puts("reading training label...");
-    Eigen::VectorXd train_Y = Load_Matrix::readLabel(filepath + "/include/dataset/box_train_yn_2.txt", 50996); // file, segment num(row)
+    Eigen::VectorXd train_Y = Load_Matrix::readLabel(filepath + "/include/dataset/box_train_y.txt", 50996); // file, segment num(row)
 
     puts("reading testing data...");
-    Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/box_test_xn_2.txt", 21857, 5);
+    Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/box_test_x.txt", 21857, 5);
 
     puts("reading testing label...");
-    Eigen::VectorXd test_Y = Load_Matrix::readLabel(filepath + "/include/dataset/box_test_yn_2.txt", 21857);
+    Eigen::VectorXd test_Y = Load_Matrix::readLabel(filepath + "/include/dataset/box_test_y.txt", 21857);
 
     Normalizer normalizer;
     normalizer.fit(train_X);
@@ -59,7 +59,7 @@ int main([[maybe_unused]] int argc, char **argv)
     for (int i = 0; i < sample; ++i)
     {
       puts("start tranning");
-      Adaboost A(1000);
+      Adaboost A(100);
       A.fit(train_X, train_Y);
 
       // prediction
