@@ -40,16 +40,16 @@ int main([[maybe_unused]] int argc, char **argv)
   {
     /* fitting */
     puts("read training data...");
-    Eigen::MatrixXd train_X = Load_Matrix::readDataSet(filepath + "/include/dataset/box_train_x.txt", 25702, 10); // file, row, col
+    Eigen::MatrixXd train_X = Load_Matrix::readDataSet(filepath + "/include/dataset/box_train_x.txt", 50996, 10); // file, row, col
 
     puts("reading training label...");
-    Eigen::VectorXd train_Y = Load_Matrix::readLabel(filepath + "/include/dataset/box_train_y.txt", 25702); // file, segment num(row)
+    Eigen::VectorXd train_Y = Load_Matrix::readLabel(filepath + "/include/dataset/box_train_y.txt", 50996); // file, segment num(row)
 
     puts("reading testing data...");
-    Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/box_test_x.txt", 11016, 10);
+    Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/box_test_x.txt", 21857, 10);
 
     puts("reading testing label...");
-    Eigen::VectorXd test_Y = Load_Matrix::readLabel(filepath + "/include/dataset/box_test_y.txt", 11016);
+    Eigen::VectorXd test_Y = Load_Matrix::readLabel(filepath + "/include/dataset/box_test_y.txt", 21857);
 
     Normalizer normalizer;
     normalizer.fit(train_X);
@@ -78,10 +78,10 @@ int main([[maybe_unused]] int argc, char **argv)
   else
   {
     puts("reading testing data...");
-    Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/box_test_x.txt", 11016, 10);
+    Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/box_test_x.txt", 21857, 10);
 
     puts("reading testing label...");
-    Eigen::VectorXd test_Y = Load_Matrix::readLabel(filepath + "/include/dataset/box_test_y.txt", 11016);
+    Eigen::VectorXd test_Y = Load_Matrix::readLabel(filepath + "/include/dataset/box_test_y.txt", 21857);
 
     Normalizer normalizer;
     Adaboost A;

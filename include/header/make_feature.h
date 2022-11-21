@@ -109,6 +109,9 @@ std::tuple<double, double, double> cal_cr(const Eigen::MatrixXd &Seg)
 
 std::tuple<double, double, double, double> cal_linearity(Eigen::MatrixXd Seg) 
 {
+  if(Seg.rows() < 2)
+    return {0, 0, 0, 0};
+
   Eigen::Vector2d m = Seg.colwise().mean();
   Seg.col(0) = Seg.col(0).array() - m(0);
   Seg.col(1) = Seg.col(1).array() - m(1);
