@@ -131,6 +131,9 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 
         marker.pose.position.x = M(0, 0);
         marker.pose.position.y = M(0, 1);
+        marker.ns = "Detected_box";
+        marker.id = 1;
+        marker.type = visualization_msgs::Marker::CUBE
         marker.header.stamp = scan->header.stamp;
         markerArray.markers.push_back(marker);
       }
@@ -148,6 +151,9 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 
         marker.pose.position.x = M(0, 0);
         marker.pose.position.y = M(0, 1);
+        marker.ns = "Detected_ball";
+        marker.id = 0;
+        marker.type = visualization_msgs::Marker::SPHERE
         marker.header.stamp = scan->header.stamp;
         markerArray.markers.push_back(marker);
       }
