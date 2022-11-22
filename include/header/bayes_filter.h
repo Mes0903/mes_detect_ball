@@ -52,7 +52,7 @@ int IsSegInBuffer(const Eigen::MatrixXd &buffer, const Eigen::MatrixXd &Seg)
  * @param buffer
  * @return Eigen::MatrixXd
  */
-Eigen::MatrixXd Bayes_filter(const Eigen::MatrixXd &T, const Eigen::MatrixXd &Z, double p1, double p0, const Eigen::MatrixXd &data, Eigen::MatrixXd &buffer, bool empty_buffer)
+Eigen::MatrixXd Bayes_filter(const Eigen::MatrixXd &T, const Eigen::MatrixXd &Z, double p1, double p0, const Eigen::MatrixXd &data, Eigen::MatrixXd &buffer, bool &empty_buffer)
 {
   auto [feature_matrix, Seg] = section_to_feature(data);
   Eigen::VectorXd pred_Y = A.predict(feature_matrix); 
@@ -63,17 +63,13 @@ Eigen::MatrixXd Bayes_filter(const Eigen::MatrixXd &T, const Eigen::MatrixXd &Z,
   int index;
   double p, eta;
   
-  
-  
   for (int i = 0; i < S_n; i++)
   {
     index = IsSegInBuffer(buffer, Seg[i]);
-    std::cout << "f\n";
     if (pred_Y[i] == 1)
     {
       if (index != -1)
       {
-        std::cout << "a\n";
         // iteration of Bayes filter
         p = buffer(index, 2);
         V << p, 1 - p;
@@ -88,31 +84,25 @@ Eigen::MatrixXd Bayes_filter(const Eigen::MatrixXd &T, const Eigen::MatrixXd &Z,
       }
       else
       {
-        std::cout << "e1\n"; //****************
         p = Z(0, 0) * p1 / (Z(0, 0) * p1 + Z(1, 0) * p0); // first probability P( x0 | Z0 )
-        std::cout << "e2\n";
         float x = Seg[i].col(0).sum() / (Seg[i].rows());
-        std::cout << "e3\n";
         float y = Seg[i].col(1).sum() / (Seg[i].rows());
-        std::cout << "e4\n";
         Eigen::VectorXd temp_vec(3);
         temp_vec << x, y, p;
         if (empty_buffer)
         {
-          std::cout << "b\n";
           buffer += temp_vec.transpose();
           empty_buffer = false;
         }
-        else
-          std::cout << "c\n";
+        else {
           buffer = AppendRow(buffer, temp_vec);      // 在buffer下加一row存 [Seg(S_n)的x座標, Seg(S_n)的y座標, p]
+        }
       }
     }
     else
     {
       if (index != -1)
       {
-        std::cout << "d\n";
         // iteration of Bayes filter
         p = buffer(index, 2);
         V << p, 1 - p;
