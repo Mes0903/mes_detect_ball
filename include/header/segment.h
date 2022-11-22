@@ -69,7 +69,6 @@ std::vector<Eigen::MatrixXd> section_to_segment(const Eigen::MatrixXd &section) 
   }
 
   seg_vec.push_back(std::move(tmp_seg)); // push the matrix into the segment list, which represents the xy data of a segment
-  single_seg.clear();
 
   if (first_end)
   {
@@ -77,7 +76,7 @@ std::vector<Eigen::MatrixXd> section_to_segment(const Eigen::MatrixXd &section) 
     Eigen::MatrixXd &end = seg_vec[seg_vec.size() - 1];
 
     Eigen::MatrixXd tmp(first.rows() + end.rows(), first.cols());
-    tmp << first, end;
+    tmp << end, first;
 
     seg_vec[0] = std::move(tmp);
     seg_vec.pop_back();
