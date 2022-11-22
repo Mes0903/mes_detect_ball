@@ -45,6 +45,7 @@ std::vector<Eigen::MatrixXd> section_to_segment(const Eigen::MatrixXd &section) 
     // Thus make it as a matrix and push it into the seg_vec
     if (std::sqrt(std::pow(x(valid_index[i - 1]) - x(valid_index[i]), 2) + std::pow(y(valid_index[i - 1]) - y(valid_index[i]), 2)) >= threshold)
     {
+
       const int node_num = single_seg.size(); // the numbers of the point in the one segment
       Eigen::MatrixXd tmp_seg(node_num, 2);
       for (int j = 0; j < node_num; ++j)
@@ -61,6 +62,7 @@ std::vector<Eigen::MatrixXd> section_to_segment(const Eigen::MatrixXd &section) 
   }
 
   const int node_num = single_seg.size(); // the numbers of the point in the one segment
+
   Eigen::MatrixXd tmp_seg(node_num, 2);
   for (int j = 0; j < node_num; ++j)
   {
