@@ -45,14 +45,15 @@ std::vector<Eigen::MatrixXd> section_to_segment(const Eigen::MatrixXd &section) 
     // Thus make it as a matrix and push it into the seg_vec
     if (std::sqrt(std::pow(x(valid_index[i - 1]) - x(valid_index[i]), 2) + std::pow(y(valid_index[i - 1]) - y(valid_index[i]), 2)) >= threshold)
     {
-      int node_num = single_seg.size(); // the numbers of the point in the one segment
+
+      const int node_num = single_seg.size(); // the numbers of the point in the one segment
       Eigen::MatrixXd tmp_seg(node_num, 2);
       for (int j = 0; j < node_num; ++j)
       {
         tmp_seg(j, 0) = x(single_seg[j]);
         tmp_seg(j, 1) = y(single_seg[j]);
       }
-      
+
       seg_vec.push_back(std::move(tmp_seg)); // push the matrix into the segment list, which represents the xy data of a segment
       single_seg.clear();
     }
@@ -60,7 +61,8 @@ std::vector<Eigen::MatrixXd> section_to_segment(const Eigen::MatrixXd &section) 
     single_seg.emplace_back(valid_index[i]); // The next segment start point.
   }
 
-  int node_num = single_seg.size(); // the numbers of the point in the one segment
+  const int node_num = single_seg.size(); // the numbers of the point in the one segment
+
   Eigen::MatrixXd tmp_seg(node_num, 2);
   for (int j = 0; j < node_num; ++j)
   {
