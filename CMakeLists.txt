@@ -85,24 +85,13 @@ target_link_libraries(
 # for ROS detection
 
 if(UNIX)
-  add_executable(Detect_Ball
+  add_executable(Detect_node
     ./src/detect_ball.cpp
     ${CLASS_DEF}
   )
 
   target_link_libraries(
-    Detect_Ball
-    ${catkin_LIBRARIES}
-    ${Eigen3_LIBRARIES}
-  )
-
-  add_executable(Detect_Box
-  ./src/detect_box.cpp
-  ${CLASS_DEF}
-  )
-
-  target_link_libraries(
-    Detect_Box
+    Detect_node
     ${catkin_LIBRARIES}
     ${Eigen3_LIBRARIES}
   )
