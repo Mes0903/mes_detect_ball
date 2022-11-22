@@ -2,7 +2,7 @@
  * @file detect_ball.cpp
  * @author Mes (mes900903@gmail.com) (Discord: Mes#0903)
  * @brief Detect the ball by minibots, this file is a ROS node.
- *        Execute it by command `rosrun mes_detect_ball Detect_Ball` if you use ROS to build it.
+ *        Execute it by command rosrun mes_detect_ball Detect_Ball if you use ROS to build it.
  * @version 0.1
  * @date 2022-11-18
  */
@@ -21,13 +21,17 @@
 #include "segment.h"
 #include "normalize.h"
 #include "file_handler.h"
+#include "bayes_filter.h"
 
 #include <iostream>
 #include <Eigen/Dense>
 #include <limits>
 
-static Adaboost A;
+Adaboost A;
 static Normalizer normalizer;
+Eigen::MatrixXd ball_buffer = Eigen::MatrixXd::Zero(1, 3); ////////
+bool empty_buffer = true;
+//Eigen::MatrixXd box_buffer = Eigen::MatrixXd::Zero(1, 3); ////////
 
 visualization_msgs::Marker marker;
 uint32_t shape = visualization_msgs::Marker::SPHERE;
@@ -97,7 +101,20 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
   // prediction
   Eigen::VectorXd pred_Y = A.predict(feature_matrix); // input 等等是 xy，所以要轉 feature
   bool detect_flag = false;
-
+  
+  // Bayes filter parameters
+  Eigen::MatrixXd T(2,2);
+  T << 0.8, 0.2, 0.2, 0.8;
+  Eigen::MatrixXd Z_ball(2,2);
+  Z_ball << 0.968, 0.032, 0.0002, 0.9998;
+  
+  int p1 = 0.014;
+  int p0 = 0.986;
+  ball_buffer = Bayes_filter(T, Z_ball, p1, p0, data, ball_buffer, empty_buffer);
+  //Eigen::MatrixXd Z_box(2,2);
+  //Z_box << 0.986, 0.014, 0.0001, 0.9999;
+  //box_buffer = Bayes_filter(T, Z_box, p1, p0, data, box_buffer);
+  
   for (int i = 0; i < pred_Y.size(); ++i)
   {
     if (pred_Y(i) == 1)
@@ -107,8 +124,8 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
       const Eigen::MatrixXd &M = segment_vec[i].colwise().mean();
 
       if(std::sqrt(std::pow(M(0, 0), 2) + std::pow(M(0, 1), 2)) < 1.5) {
-
-        std::cout << "Ball is at: [" << M(0, 0) << ", " << M(0, 1) << "]\n";
+        std::cout << "### " << ball_buffer << "\n";
+        //std::cout << "Ball is at: [" << M(0, 0) << ", " << M(0, 1) << ", " << ball_buffer.col(2).maxCoeff() <<"]\n"; ///把球拿走會出事
 
         marker.pose.position.x = M(0, 0);
         marker.pose.position.y = M(0, 1);
