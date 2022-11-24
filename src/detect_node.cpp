@@ -21,7 +21,6 @@
 #include "segment.h"
 #include "normalize.h"
 #include "file_handler.h"
-#include "bayes_filter.h"
 
 #include <iostream>
 #include <Eigen/Dense>
@@ -29,12 +28,8 @@
 
 Adaboost A_ball, A_box;
 Normalizer normalizer_ball, normalizer_box;
-Eigen::MatrixXd ball_buffer = Eigen::MatrixXd::Zero(1, 3); ////////
-bool empty_buffer = true;
-//Eigen::MatrixXd box_buffer = Eigen::MatrixXd::Zero(1, 3); ////////
 
 visualization_msgs::Marker marker;
-uint32_t shape = visualization_msgs::Marker::SPHERE;
 ros::Publisher markerArray_pub;
 
 void init_marker()
@@ -49,7 +44,7 @@ void init_marker()
   marker.ns = "Detected_ball";
   marker.id = 0;
   // Set the marker type.  Initially this is CUBE, and cycles between that and SPHERE, ARROW, and CYLINDER
-  marker.type = shape;
+  marker.type = visualization_msgs::Marker::SPHERE;
 
   // Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
   // Tag(ACTION)
@@ -96,28 +91,15 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
   // 切分段
   auto [feature_matrix, segment_vec] = section_to_feature(data); // segment_vec is std::vector<Eigen::MatrixXd>
 
-  feature_matrix_ball = normalizer_ball.transform(feature_matrix);
-  feature_matrix_box = normalizer_box.transform(feature_matrix);
+  Eigen::MatrixXd feature_matrix_ball = normalizer_ball.transform(feature_matrix);
+  Eigen::MatrixXd feature_matrix_box = normalizer_box.transform(feature_matrix);
 
   // prediction
-  Eigen::VectorXd pred_Y_ball = A_ball.predict(feature_matrix_ball); // input 等等是 xy，所以要轉 feature
   Eigen::VectorXd pred_Y_box = A_box.predict(feature_matrix_box); // input 等等是 xy，所以要轉 feature
+  Eigen::VectorXd pred_Y_ball = A_ball.predict(feature_matrix_ball); // input 等等是 xy，所以要轉 feature
   bool detect_flag = false;
-  
-  // Bayes filter parameters
-  Eigen::MatrixXd T(2,2);
-  T << 0.8, 0.2, 0.2, 0.8;
-  Eigen::MatrixXd Z_ball(2,2);
-  Z_ball << 0.968, 0.032, 0.0002, 0.9998;
-  
-  int p1 = 0.014;
-  int p0 = 0.986;
-  ball_buffer = Bayes_filter(T, Z_ball, p1, p0, data, ball_buffer, empty_buffer);
-  //Eigen::MatrixXd Z_box(2,2);
-  //Z_box << 0.986, 0.014, 0.0001, 0.9999;
-  //box_buffer = Bayes_filter(T, Z_box, p1, p0, data, box_buffer);
-  
-  for (int i = 0; i < pred_Y.size(); ++i)
+
+  for (std::size_t i = 0; i < segment_vec.size(); ++i)
   {
     if (pred_Y_box(i) == 1)
     {
@@ -126,14 +108,13 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
       const Eigen::MatrixXd &M = segment_vec[i].colwise().mean();
 
       if(std::sqrt(std::pow(M(0, 0), 2) + std::pow(M(0, 1), 2)) < 1.5) {
-        std::cout << "### " << ball_buffer << "\n";
-        //std::cout << "Ball is at: [" << M(0, 0) << ", " << M(0, 1) << ", " << ball_buffer.col(2).maxCoeff() <<"]\n"; ///把球拿走會出事
+
+        std::cout << "Box is at: [" << M(0, 0) << ", " << M(0, 1) << "]\n";
 
         marker.pose.position.x = M(0, 0);
         marker.pose.position.y = M(0, 1);
         marker.ns = "Detected_box";
-        marker.id = 1;
-        marker.type = visualization_msgs::Marker::CUBE
+        marker.type = visualization_msgs::Marker::CUBE;
         marker.header.stamp = scan->header.stamp;
         markerArray.markers.push_back(marker);
       }
@@ -146,14 +127,13 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
       const Eigen::MatrixXd &M = segment_vec[i].colwise().mean();
 
       if(std::sqrt(std::pow(M(0, 0), 2) + std::pow(M(0, 1), 2)) < 1.5) {
-        std::cout << "### " << ball_buffer << "\n";
-        //std::cout << "Ball is at: [" << M(0, 0) << ", " << M(0, 1) << ", " << ball_buffer.col(2).maxCoeff() <<"]\n"; ///把球拿走會出事
+
+        std::cout << "Ball is at: [" << M(0, 0) << ", " << M(0, 1) << "]\n";
 
         marker.pose.position.x = M(0, 0);
         marker.pose.position.y = M(0, 1);
         marker.ns = "Detected_ball";
-        marker.id = 0;
-        marker.type = visualization_msgs::Marker::SPHERE
+        marker.type = visualization_msgs::Marker::SPHERE;
         marker.header.stamp = scan->header.stamp;
         markerArray.markers.push_back(marker);
       }
@@ -178,13 +158,13 @@ int main([[maybe_unused]] int argc, char **argv)
   Weight_handle::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A_ball, normalizer_ball);
   Weight_handle::load_weight(filepath + "/include/weight_data/adaboost_box_weight.txt", A_box, normalizer_box);
 
-  ros::init(argc, argv, "Detect_Ball_Node");
+  ros::init(argc, argv, "Detection_Nodes");
 
   ros::NodeHandle n;
 
   ros::Subscriber sub = n.subscribe<sensor_msgs::LaserScan>("/scan", 1, scanCallback);
 
-  markerArray_pub = n.advertise<visualization_msgs::MarkerArray>("Ball_MarkerArray", 1);
+  markerArray_pub = n.advertise<visualization_msgs::MarkerArray>("Detection_MarkerArray", 1);
 
   init_marker();
 

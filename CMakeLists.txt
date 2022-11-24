@@ -86,7 +86,7 @@ target_link_libraries(
 
 if(UNIX)
   add_executable(Detect_node
-    ./src/detect_ball.cpp
+    ./src/detect_node.cpp
     ${CLASS_DEF}
   )
 
