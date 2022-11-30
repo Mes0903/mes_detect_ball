@@ -15,9 +15,9 @@
 #include "sensor_msgs/LaserScan.h"
 #include "std_msgs/String.h"
 
-#include "adaboost_classifier.h"
 #include "make_feature.h"
-#include "weak_learner.h"
+#include "adaboost.h"
+#include "logistic.h"
 #include "segment.h"
 #include "normalize.h"
 #include "file_handler.h"
@@ -78,37 +78,33 @@ void init_marker()
 void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
 {
   visualization_msgs::MarkerArray markerArray;
-  
+
   const int ROW = 720;
   Eigen::MatrixXd data(ROW, 2);
 
-  for (int i = 0; i < ROW; i++)
-  {
+  for (int i = 0; i < ROW; i++) {
     data(i, 0) = scan->ranges[i] * std::cos(scan->angle_min + scan->angle_increment * i);
     data(i, 1) = scan->ranges[i] * std::sin(scan->angle_min + scan->angle_increment * i);
   }
 
   // 切分段
-  auto [feature_matrix, segment_vec] = section_to_feature(data); // segment_vec is std::vector<Eigen::MatrixXd>
+  auto [feature_matrix, segment_vec] = section_to_feature(data);    // segment_vec is std::vector<Eigen::MatrixXd>
 
   Eigen::MatrixXd feature_matrix_ball = normalizer_ball.transform(feature_matrix);
   Eigen::MatrixXd feature_matrix_box = normalizer_box.transform(feature_matrix);
 
   // prediction
-  Eigen::VectorXd pred_Y_box = A_box.predict(feature_matrix_box); // input 等等是 xy，所以要轉 feature
-  Eigen::VectorXd pred_Y_ball = A_ball.predict(feature_matrix_ball); // input 等等是 xy，所以要轉 feature
+  Eigen::VectorXd pred_Y_box = A_box.predict(feature_matrix_box);    // input 等等是 xy，所以要轉 feature
+  Eigen::VectorXd pred_Y_ball = A_ball.predict(feature_matrix_ball);    // input 等等是 xy，所以要轉 feature
   bool detect_flag = false;
 
-  for (std::size_t i = 0; i < segment_vec.size(); ++i)
-  {
-    if (pred_Y_box(i) == 1)
-    {
+  for (std::size_t i = 0; i < segment_vec.size(); ++i) {
+    if (pred_Y_box(i) == 1) {
       detect_flag = true;
 
       const Eigen::MatrixXd &M = segment_vec[i].colwise().mean();
 
-      if(std::sqrt(std::pow(M(0, 0), 2) + std::pow(M(0, 1), 2)) < 1.5) {
-
+      if (std::sqrt(std::pow(M(0, 0), 2) + std::pow(M(0, 1), 2)) < 1.5) {
         std::cout << "Box is at: [" << M(0, 0) << ", " << M(0, 1) << "]\n";
 
         marker.pose.position.x = M(0, 0);
@@ -119,15 +115,13 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
         markerArray.markers.push_back(marker);
       }
     }
-    
-    if (pred_Y_ball(i) == 1)
-    {
+
+    if (pred_Y_ball(i) == 1) {
       detect_flag = true;
 
       const Eigen::MatrixXd &M = segment_vec[i].colwise().mean();
 
-      if(std::sqrt(std::pow(M(0, 0), 2) + std::pow(M(0, 1), 2)) < 1.5) {
-
+      if (std::sqrt(std::pow(M(0, 0), 2) + std::pow(M(0, 1), 2)) < 1.5) {
         std::cout << "Ball is at: [" << M(0, 0) << ", " << M(0, 1) << "]\n";
 
         marker.pose.position.x = M(0, 0);

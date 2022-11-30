@@ -15,13 +15,14 @@
  * @date 2022-11-18
  */
 
+#include "normalize.h"
 #include <Eigen/Eigen>
 #include <string>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-#include <cmath>
+
 
 #if __cplusplus >= 202002L
 
@@ -38,25 +39,7 @@
   stream.str("");    \
   stream.clear()
 
-namespace Load_Matrix
-{
-  /**
-   * @brief Transforming the matrix from [theta, r] data to [x, y] data.
-   *
-   * @param data The [thera, r] matrix.
-   * @param ROWS The rows number of the matrix.
-   */
-  void transform_to_xy(Eigen::MatrixXd &data, const uint32_t ROWS)
-  {
-    for (uint32_t i = 0; i < ROWS; i++)
-    {
-      const double theta = M_PI * data(i, 0) / 180; // transform the radian to angle
-      const double r = data(i, 1);                  // radius
-
-      data(i, 0) = r * std::cos(theta); // x
-      data(i, 1) = r * std::sin(theta); // y
-    }
-  }
+namespace Load_Matrix {
 
   /**
    * @brief Read the data from the filepath to the matrix.
@@ -69,8 +52,7 @@ namespace Load_Matrix
   Eigen::MatrixXd readDataSet(const std::string filepath, const uint32_t ROWS, const uint32_t COLS)
   {
     std::ifstream infile(filepath);
-    if (infile.fail())
-    {
+    if (infile.fail()) {
       std::cout << "cant found " << filepath << '\n';
       exit(1);
     }
@@ -79,13 +61,11 @@ namespace Load_Matrix
     std::string line;
     std::stringstream stream;
     uint32_t row = 0;
-    for (uint32_t cnt = 0; cnt < ROWS; ++cnt)
-    {
+    for (uint32_t cnt = 0; cnt < ROWS; ++cnt) {
       double buff;
-      getline(infile, line); // read every line of the file
+      getline(infile, line);    // read every line of the file
       stream << line;
-      for (uint32_t col = 0; col < COLS; ++col)
-      {
+      for (uint32_t col = 0; col < COLS; ++col) {
         stream >> buff;
         result(row, col) = buff;
       }
@@ -96,7 +76,6 @@ namespace Load_Matrix
 
     infile.close();
 
-    puts("transforming data to xy data");
     return result;
   };
 
@@ -110,8 +89,7 @@ namespace Load_Matrix
   Eigen::VectorXd readLabel(const std::string filepath, const uint32_t SIZE)
   {
     std::ifstream infile(filepath);
-    if (infile.fail())
-    {
+    if (infile.fail()) {
       std::cout << "cant found " << filepath << '\n';
       exit(1);
     }
@@ -121,10 +99,9 @@ namespace Load_Matrix
     std::stringstream stream;
 
     uint32_t row = 0;
-    for (uint32_t cnt = 0; cnt < SIZE; ++cnt)
-    {
+    for (uint32_t cnt = 0; cnt < SIZE; ++cnt) {
       double buff;
-      getline(infile, line); // read every line of the file
+      getline(infile, line);    // read every line of the file
       stream << line;
       stream >> buff;
       result(row) = buff;
@@ -136,7 +113,7 @@ namespace Load_Matrix
     infile.close();
     return result;
   }
-} // namespace Load_Matrix
+}    // namespace Load_Matrix
 
 /**
  * @brief Return the project directory path.
@@ -153,17 +130,13 @@ std::string get_filepath([[maybe_unused]] const char *filepath)
   std::string path;
 
 #if __cplusplus >= 202002L
-  for (const std::string token : buf | std::ranges::views::split('/') // split the file path by '/'
-                                     | std::ranges::views::transform( // transform the output type to the std::string
-                                           [](auto &&rng)
-                                           { return std::string(&*rng.begin(), std::ranges::distance(rng)); }))
-  {
-    if (token != "")
-    {
+  for (const std::string token : buf | std::ranges::views::split('/')    // split the file path by '/'
+                                   | std::ranges::views::transform(    // transform the output type to the std::string
+                                       [](auto &&rng) { return std::string(&*rng.begin(), std::ranges::distance(rng)); })) {
+    if (token != "") {
       path += "/" + token;
 
-      if (token == "catkin_ws")
-      {
+      if (token == "catkin_ws") {
         path += "/src/mes_detect_ball";
         break;
       }
@@ -174,15 +147,12 @@ std::string get_filepath([[maybe_unused]] const char *filepath)
 
   std::size_t pos = 0;
   std::string token;
-  while ((pos = buf.find(delimiter)) != std::string::npos)
-  {
+  while ((pos = buf.find(delimiter)) != std::string::npos) {
     token = buf.substr(0, pos);
-    if (token != "")
-    {
+    if (token != "") {
       path += '/' + token;
 
-      if (token == "catkin_ws")
-      {
+      if (token == "catkin_ws") {
         path += "/src/mes_detect_ball";
         break;
       }
@@ -195,106 +165,139 @@ std::string get_filepath([[maybe_unused]] const char *filepath)
 
   return path;
 
-#endif // __linux__
-
+#endif    // __linux__
 }
 
-namespace Weight_handle
-{
+namespace Weight_handle {
 
-  namespace detail
-  {
+  namespace detail {
 #if __cplusplus >= 202002L
     /**
-     * @brief check if the weight in class can be stored
-     * @param ins the instance of the class
+     * @brief Check if the weight in class can be stored.
+     * @param ins The instance of the class.
      */
     template <typename T>
-    concept can_store = requires(T &ins, const std::string filepath, std::ofstream &outfile)
+    concept can_store = requires(T &ins, const std::string &filepath, std::ofstream &outfile)
     {
-      ins.store_weight(filepath, outfile);
+      {
+        ins.store_weight(filepath, outfile)
+        } -> void;    // ok WTF clang-format...
     };
 
     /**
-     * @brief check if the weight in class can be loaded
-     * @param ins the instance of the class
+     * @param ins The instance of the class.
      */
     template <typename T>
-    concept can_load = requires(T &ins, const std::string filepath, std::ifstream &infile)
+    concept can_load = requires(T &ins, const std::string &filepath, std::ifstream &infile)
     {
-      ins.load_weight(filepath, infile);
+      {
+        ins.load_weight(filepath, infile)
+        } -> void;
     };
 
-#endif
-
     /**
-     * @brief the implementation for loading data
+     * @brief The implementation for loading data.
      *
-     * @param filepath the file which would be writed
-     * @param ins the class instance
-     * @param first the head of parameter pack, a class instance
-     * @param instances the parameter pack, class instances
+     * @param filepath The file which would be written.
+     * @param ins The class instance.
+     * @param first The head of parameter pack, a class instance.
      */
     template <typename T>
-    void store_weight_impl(const std::string filepath, std::ofstream &outfile, T &ins)
-#if __cplusplus >= 202002L
-        requires can_store<T> // Check if the instance implemented the `store_weight` method by Detection Idioms(Concept requires)
-#endif
+    void store_weight_impl(const std::string &filepath, std::ofstream &outfile, T &ins) requires can_store<T>    // Check if the instance implemented the `store_weight` method by Detection Idioms(Concept requires)
     {
-#if __cplusplus >= 202002L
       ins.store_weight(filepath, outfile);
-#else
-      /**
-       * @brief Check if the instance implemented the `store_weight` method by Detection Idioms(constexpr if)
-       */
-      if constexpr (std::is_void_v<decltype(std::declval<T>().store_weight(filepath, outfile))>)
-        ins.store_weight(filepath, outfile);
-      else
-        throw std::logic_error("The class didn't implement the store_weight function, or with non void return type.");
-#endif
     }
 
+    /**
+     * @brief The implementation for storing data.
+     *
+     * @param filepath The file which would be stored.
+     * @param ins The class instance.
+     * @param first The head of parameter pack, a class instance.
+     */
+    template <typename T>
+    void load_weight_impl(const std::string &filepath, std::ifstream &infile, T &ins) requires can_load<T>    // Check if the instance implemented the `load_weight` method by Detection Idioms(Concept requires)
+    {
+      ins.load_weight(filepath, infile);
+    }
+
+#else
+
+    /**
+     * @brief Check if the weight in class can be stored.
+     */
+    template <typename, typename = void>
+    struct can_store : std::false_type {};
+
+    template <typename T>
+    struct can_store<T, std::void_t<decltype(&T::store_weight)> >
+        : std::is_same<void,
+                       decltype(std::declval<T>().store_weight(std::declval<const std::string>(), std::declval<std::ofstream &>()))> {};
+
+    /**
+     * @brief Check if the weight in class can be loaded.
+     */
+    template <typename, typename = void>
+    struct can_load : std::false_type {};
+
+    template <typename T>
+    struct can_load<T, std::void_t<decltype(&T::load_weight)> >
+        : std::is_same<void,
+                       decltype(std::declval<T>().load_weight(std::declval<const std::string>(), std::declval<std::ifstream &>()))> {};
+
+
+    /**
+     * @brief The implementation for loading data.
+     *
+     * @param filepath The file which would be written.
+     * @param outfile The file stream which will be written.
+     * @param ins The class instance.
+     */
+    template <typename T,
+              typename std::enable_if<can_store<T>::value>::type * = nullptr>
+    void store_weight_impl(const std::string &filepath, std::ofstream &outfile, T &ins)
+    {
+      ins.store_weight(filepath, outfile);
+    }
+
+    /**
+     * @brief The implementation for storing data.
+     *
+     * @param filepath The file which would be stored.
+     * @param outfile The file stream which will be stored.
+     * @param ins The class instance.
+     */
+    template <typename T,
+              typename std::enable_if<can_load<T>::value>::type * = nullptr>
+    void load_weight_impl(const std::string &filepath, std::ifstream &infile, T &ins)
+    {
+      ins.load_weight(filepath, infile);
+    }
+
+#endif
+
+    /**
+     * @brief Calling the implementation of the class instance
+     * 
+     * @param filepath The file which would be stored.
+     * @param outfile The file stream which will be stored.
+     * @param first The target class instance.
+     * @param instances Class instances pack.
+     */
     template <typename T, typename... A>
-    void store_weight_impl(const std::string filepath, std::ofstream &outfile, T &first, A &...instances)
+    void store_weight_impl(const std::string &filepath, std::ofstream &outfile, T &first, A &...instances)
     {
       store_weight_impl(filepath, outfile, first);
       store_weight_impl(filepath, outfile, instances...);
     }
 
-    /**
-     * @brief the implementation for storing data
-     *
-     * @param filepath the file which would be stored
-     * @param ins the class instance
-     * @param first the head of parameter pack, a class instance
-     * @param instances the parameter pack, class instances
-     */
-    template <typename T>
-    void load_weight_impl(const std::string filepath, std::ifstream &infile, T &ins)
-#if __cplusplus >= 202002L
-        requires can_load<T> // Check if the instance implemented the `load_weight` method by Detection Idioms(Concept requires)
-#endif
-    {
-#if __cplusplus >= 202002L
-      ins.load_weight(filepath, infile);
-#else
-      /**
-       * @brief Check if the instance implemented the `load_weight` method by Detection Idioms(constexpr if)
-       */
-      if constexpr (std::is_void_v<decltype(std::declval<T>().load_weight(filepath, infile))>)
-        ins.load_weight(filepath, infile);
-      else
-        throw std::logic_error("The class didn't implement the store_weight function, or with non void return type.");
-#endif
-    }
-
     template <typename T, typename... A>
-    void load_weight_impl(const std::string filepath, std::ifstream &infile, T &first, A &...instances)
+    void load_weight_impl(const std::string &filepath, std::ifstream &infile, T &first, A &...instances)
     {
       load_weight_impl(filepath, infile, first);
       load_weight_impl(filepath, infile, instances...);
     }
-  } // namespace detail
+  }    // namespace detail
 
   /**
    * @brief the API for storing data
@@ -307,8 +310,7 @@ namespace Weight_handle
   {
     // compact the correct rate between storing file and current training data
     std::ifstream infile(filepath);
-    if (infile.fail())
-    {
+    if (infile.fail()) {
       std::cerr << "cant read " << filepath << '\n';
       exit(1);
     }
@@ -340,15 +342,13 @@ namespace Weight_handle
               << "Best F1 Score: " << old_F1_Score << '\n';
 
     // compact F1 Score
-    if (F1_Score <= old_F1_Score)
-    {
+    if (F1_Score <= old_F1_Score) {
       std::cout << "This weight won't be saved since its F1 Score is not better than the original one\n";
       return;
     }
 
     std::ofstream outfile(filepath);
-    if (outfile.fail())
-    {
+    if (outfile.fail()) {
       std::cout << "cant found " << filepath << '\n';
       exit(1);
     }
@@ -368,8 +368,7 @@ namespace Weight_handle
   void load_weight(const std::string filepath, T &...instances)
   {
     std::ifstream infile(filepath);
-    if (infile.fail())
-    {
+    if (infile.fail()) {
       std::cout << "cant found " << filepath << '\n';
       exit(1);
     }
@@ -378,6 +377,6 @@ namespace Weight_handle
 
     infile.close();
   }
-} // namespace Weight_handle
+}    // namespace Weight_handle
 
 #endif

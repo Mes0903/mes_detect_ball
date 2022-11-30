@@ -2,9 +2,13 @@ BasedOnStyle: Chromium
 Language: Cpp
 MaxEmptyLinesToKeep: 3
 IndentCaseLabels: false
-AllowShortIfStatementsOnASingleLine: false
-AllowShortCaseLabelsOnASingleLine: false
-AllowShortLoopsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+AllowShortBlocksOnASingleLine: true
+AllowShortEnumsOnASingleLine: true
+AllowShortLambdasOnASingleLine: true
+AllowShortFunctionsOnASingleLine: true
 DerivePointerAlignment: false
 PointerAlignment: Right
 SpaceAfterCStyleCast: true
@@ -23,7 +27,6 @@ SpaceBeforeAssignmentOperators: true
 SortIncludes: false
 Cpp11BracedListStyle: false
 ContinuationIndentWidth: 2
-AllowShortLoopsOnASingleLine: false
 BinPackArguments: true
 ColumnLimit: 0
 AllowShortEnumsOnASingleLine: true
@@ -55,3 +58,4 @@ BraceWrapping:
   BeforeCatch:	false
   BeforeElse:	true
   IndentBraces:	false
+  SplitEmptyRecord: false

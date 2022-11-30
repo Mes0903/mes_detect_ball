@@ -7,9 +7,9 @@
  * @date 2022-11-17
  */
 
-#include "adaboost_classifier.h"
+#include "adaboost.h"
+#include "logistic.h"
 #include "make_feature.h"
-#include "weak_learner.h"
 #include "segment.h"
 #include "normalize.h"
 #include "file_handler.h"
@@ -28,22 +28,20 @@ int main([[maybe_unused]] int argc, char **argv)
   std::cout << "Input 1 if training, others if loading\n>";
   std::cin >> case_num;
 
-  if (case_num == 1)
-  {
+  if (case_num == 1) {
     std::cout << "input sample numbers\n>";
     std::cin >> sample;
   }
   std::cin.clear();
   std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-  if (case_num == 1)
-  {
+  if (case_num == 1) {
     /* fitting */
     puts("read training data...");
-    Eigen::MatrixXd train_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_train_x.txt", 50996, 10); // file, row, col
+    Eigen::MatrixXd train_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_train_x.txt", 50996, 10);    // file, row, col
 
     puts("reading training label...");
-    Eigen::VectorXd train_Y = Load_Matrix::readLabel(filepath + "/include/dataset/ball_train_y.txt", 50996); // file, segment num(row)
+    Eigen::VectorXd train_Y = Load_Matrix::readLabel(filepath + "/include/dataset/ball_train_y.txt", 50996);    // file, segment num(row)
 
     puts("reading testing data...");
     Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_test_x.txt", 21857, 10);
@@ -56,11 +54,10 @@ int main([[maybe_unused]] int argc, char **argv)
     train_X = normalizer.transform(train_X);
     test_X = normalizer.transform(test_X);
 
-    for (int i = 0; i < sample; ++i)
-    {
-      std::cout << "training sample " << i + 1<< "...\n";
+    for (int i = 0; i < sample; ++i) {
+      std::cout << "training sample " << i + 1 << "...\n";
       puts("start tranning");
-      Adaboost A(100);
+      Adaboost<logistic> A(100);
       A.fit(train_X, train_Y);
 
       // prediction
@@ -75,8 +72,7 @@ int main([[maybe_unused]] int argc, char **argv)
       Weight_handle::store_weight(confusion_matrix, filepath + "/include/weight_data/adaboost_ball_weight.txt", A, normalizer);
     }
   }
-  else
-  {
+  else {
     puts("reading testing data...");
     Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_test_x.txt", 21857, 10);
 
@@ -84,7 +80,8 @@ int main([[maybe_unused]] int argc, char **argv)
     Eigen::VectorXd test_Y = Load_Matrix::readLabel(filepath + "/include/dataset/ball_test_y.txt", 21857);
 
     Normalizer normalizer;
-    Adaboost A;
+    Adaboost<logistic> A;
+
     puts("Load Weighting...");
     Weight_handle::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A, normalizer);
 

@@ -22,6 +22,7 @@ if(WIN32)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3")
   endif()
 else()
+  find_package(Eigen3 REQUIRED)
   set(CMAKE_CXX_FLAGS "-Wall -Wextra")
   set(CMAKE_CXX_FLAGS_DEBUG "-g -O3")
   set(CMAKE_CXX_FLAGS_RELEASE "-O3")
@@ -29,70 +30,81 @@ endif(WIN32)
 
 
 # For ROS and catkin_make
-if(UNIX)
-  find_package(Eigen3 REQUIRED)
-  find_package(catkin REQUIRED COMPONENTS
-    roscpp
-    rospy
-    std_msgs
-  )
-
-  catkin_package(
-    INCLUDE_DIRS include
-    LIBRARIES mes_detect_ball
-    CATKIN_DEPENDS roscpp rospy std_msgs
-    DEPENDS EIGEN3
-  )
-endif(UNIX)
+#if(UNIX)
+#  find_package(Eigen3 REQUIRED)
+#  find_package(catkin REQUIRED COMPONENTS
+#    roscpp
+#    rospy
+#    std_msgs
+#  )
+#
+#  catkin_package(
+#    INCLUDE_DIRS include
+#    LIBRARIES mes_detect_ball
+#    CATKIN_DEPENDS roscpp rospy std_msgs
+#    DEPENDS EIGEN3
+#  )
+#endif(UNIX)
 
 # Project header
-set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/include/header)
-set(DATA_SETS ${PROJECT_SOURCE_DIR}/include/dataset)
+set(PROJECT_HEADER ${PROJECT_SOURCE_DIR}/include/header)
+set(MODEL_DIR ${PROJECT_SOURCE_DIR}/Model)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
-  ${THIRD_PARTY_DIR}
-  ${DATA_SETS}
+  ${PROJECT_HEADER}
+  ${MODEL_DIR}
+  ${MODEL_DIR}/adaboost
+  ${MODEL_DIR}/logistic
 )
-
-# Definition of headers
-aux_source_directory(./class_def CLASS_DEF)
 
 # 
-add_executable(Training_Ball
-  ./src/training_ball.cpp
-  ${CLASS_DEF}
-)
+#add_executable(Training_Ball
+#  ./src/training_ball.cpp
+#  ${MODEL_DIR}/Model.h
+#  ${MODEL_DIR}/normalize.h
+#  ${MODEL_DIR}/normalize.cpp
+#  ${MODEL_DIR}/adaboost/adaboost.h
+#  ${MODEL_DIR}/logistic/logistic.h
+#  ${MODEL_DIR}/logistic/logistic.cpp
+#)
+#
+#target_link_libraries(
+#  Training_Ball
+#  ${catkin_LIBRARIES}
+#  ${Eigen3_LIBRARIES}
+#)
+#
+#add_executable(Training_Box
+#  ./src/training_box.cpp
+#  ${MODEL_DIR}/Model.h
+#  ${MODEL_DIR}/normalize.h
+#  ${MODEL_DIR}/normalize.cpp
+#  ${MODEL_DIR}/adaboost/adaboost.h
+#  ${MODEL_DIR}/logistic/logistic.h
+#  ${MODEL_DIR}/logistic/logistic.cpp
+#)
+#
+#target_link_libraries(
+#  Training_Box
+#  ${catkin_LIBRARIES}
+#  ${Eigen3_LIBRARIES}
+#)
 
-target_link_libraries(
-  Training_Ball
-  ${catkin_LIBRARIES}
-  ${Eigen3_LIBRARIES}
-)
-
-add_executable(Training_Box
-  ./src/training_box.cpp
-  ${CLASS_DEF}
-)
-
-target_link_libraries(
-  Training_Box
-  ${catkin_LIBRARIES}
-  ${Eigen3_LIBRARIES}
-)
+add_subdirectory(${PROJECT_SOURCE_DIR}/simulation)
 
 # for ROS detection
 
-if(UNIX)
-  add_executable(Detect_node
-    ./src/detect_node.cpp
-    ${CLASS_DEF}
-  )
-
-  target_link_libraries(
-    Detect_node
-    ${catkin_LIBRARIES}
-    ${Eigen3_LIBRARIES}
-  )
-endif(UNIX)
+#if(UNIX)
+#  add_executable(Detect_node
+#    ./src/detect_node.cpp
+#    ${CLASS_DEF}
+#  )
+#
+#  target_link_libraries(
+#    Detect_node
+#    ${catkin_LIBRARIES}
+#    ${Eigen3_LIBRARIES}
+#  )
+#endif(UNIX)

@@ -56,7 +56,7 @@ double cal_std(const Eigen::MatrixXd &Seg)
   if (n < 2)
     return 0.0;
 
-  Eigen::Vector2d m = Seg.colwise().mean(); // the means vector of data
+  Eigen::Vector2d m = Seg.colwise().mean();    // the means vector of data
   const auto &x = Seg.col(0);
   const auto &y = Seg.col(1);
 
@@ -104,13 +104,13 @@ std::tuple<double, double, double> cal_cr(const Eigen::MatrixXd &Seg)
   double circularity = ((radius - ((xc - x.array()).square() + (yc - y.array()).square()).sqrt()).square()).sum();
   double distance = std::sqrt(std::pow(xc, 2) + std::pow(yc, 2));
 
-  return {radius, circularity, distance};
+  return { radius, circularity, distance };
 }
 
-std::tuple<double, double, double, double> cal_linearity(Eigen::MatrixXd Seg) 
+std::tuple<double, double, double, double> cal_linearity(Eigen::MatrixXd Seg)
 {
-  if(Seg.rows() < 2)
-    return {0, 0, 0, 0};
+  if (Seg.rows() < 2)
+    return { 0, 0, 0, 0 };
 
   Eigen::Vector2d m = Seg.colwise().mean();
   Seg.col(0) = Seg.col(0).array() - m(0);
@@ -129,7 +129,7 @@ std::tuple<double, double, double, double> cal_linearity(Eigen::MatrixXd Seg)
   double bounding_box_area = bounding_box_short * bounding_box_long;
   double total_least_square = P_short.square().mean();
 
-  return {bounding_box_long, bounding_box_short, bounding_box_area, total_least_square};
+  return { bounding_box_long, bounding_box_short, bounding_box_area, total_least_square };
 }
 
 /**
@@ -166,29 +166,26 @@ Eigen::VectorXd make_feature(const Eigen::MatrixXd &Seg)
  * @param xy_data The section xy data. On my minibots, the matrix is 720*2
  * @return std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> feature matrix and a vector containing all the segments in one second.
  */
-std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> section_to_feature(const Eigen::MatrixXd &xy_data) // xy_data is 720*2
+std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> section_to_feature(const Eigen::MatrixXd &xy_data)    // xy_data is 720*2
 {
   Eigen::MatrixXd feature_data = Eigen::MatrixXd::Zero(1, FEATURE_NUM);
   bool empty_flag = true;
 
-  std::vector<Eigen::MatrixXd> section_seg_vec = section_to_segment(xy_data); // 那一秒切出來的所有 segment
+  std::vector<Eigen::MatrixXd> section_seg_vec = section_to_segment(xy_data);    // 那一秒切出來的所有 segment
 
-  for (const auto &Seg : section_seg_vec)
-  {
+  for (const auto &Seg : section_seg_vec) {
     Eigen::VectorXd single_feature = make_feature(Seg);
 
-    if (empty_flag)
-    {
+    if (empty_flag) {
       feature_data += single_feature.transpose();
       empty_flag = false;
     }
-    else
-    {
+    else {
       feature_data = AppendRow(feature_data, single_feature);
     }
   }
 
-  return {feature_data, section_seg_vec};
+  return { feature_data, section_seg_vec };
 }
 
 #endif
