@@ -49,7 +49,7 @@ namespace Load_Matrix {
    * @param COLS The cols number of the file.
    * @return Eigen::MatrixXd The matrix which have completed loading.
    */
-  Eigen::MatrixXd readDataSet(const std::string filepath, const uint32_t ROWS, const uint32_t COLS)
+  Eigen::MatrixXd readDataSet(const std::string filepath, const int ROWS, const int COLS)
   {
     std::ifstream infile(filepath);
     if (infile.fail()) {
@@ -60,12 +60,12 @@ namespace Load_Matrix {
     Eigen::MatrixXd result(ROWS, COLS);
     std::string line;
     std::stringstream stream;
-    uint32_t row = 0;
-    for (uint32_t cnt = 0; cnt < ROWS; ++cnt) {
+    int row = 0;
+    for (int cnt = 0; cnt < ROWS; ++cnt) {
       double buff;
       getline(infile, line);    // read every line of the file
       stream << line;
-      for (uint32_t col = 0; col < COLS; ++col) {
+      for (int col = 0; col < COLS; ++col) {
         stream >> buff;
         result(row, col) = buff;
       }
@@ -86,7 +86,7 @@ namespace Load_Matrix {
    * @param SIZE The lines number of the file.
    * @return Eigen::VectorXd  The vector which have completed loading.
    */
-  Eigen::VectorXd readLabel(const std::string filepath, const uint32_t SIZE)
+  Eigen::VectorXd readLabel(const std::string filepath, const int SIZE)
   {
     std::ifstream infile(filepath);
     if (infile.fail()) {
@@ -98,8 +98,8 @@ namespace Load_Matrix {
     std::string line;
     std::stringstream stream;
 
-    uint32_t row = 0;
-    for (uint32_t cnt = 0; cnt < SIZE; ++cnt) {
+    int row = 0;
+    for (int cnt = 0; cnt < SIZE; ++cnt) {
       double buff;
       getline(infile, line);    // read every line of the file
       stream << line;
@@ -115,60 +115,62 @@ namespace Load_Matrix {
   }
 }    // namespace Load_Matrix
 
-/**
- * @brief Return the project directory path.
- *
- * @param filepath the executable file path, which is argv[0].
- * @return std::string The project directory path
- */
-std::string get_filepath([[maybe_unused]] const char *filepath)
-{
+
+
+namespace File_handler {
+
+  /**
+  * @brief Return the project directory path.
+  *
+  * @param filepath the executable file path, which is argv[0].
+  * @return std::string The project directory path
+  */
+  std::string get_filepath([[maybe_unused]] const char *filepath)
+  {
 #if _WIN32
-  return "D:/document/GitHub/mes_detect_ball";
+    return "D:/document/GitHub/mes_detect_ball";
 #else
-  std::string buf = filepath;
-  std::string path;
+    std::string buf = filepath;
+    std::string path;
 
 #if __cplusplus >= 202002L
-  for (const std::string token : buf | std::ranges::views::split('/')    // split the file path by '/'
-                                   | std::ranges::views::transform(    // transform the output type to the std::string
-                                       [](auto &&rng) { return std::string(&*rng.begin(), std::ranges::distance(rng)); })) {
-    if (token != "") {
-      path += "/" + token;
+    for (const std::string token : buf | std::ranges::views::split('/')    // split the file path by '/'
+                                     | std::ranges::views::transform(    // transform the output type to the std::string
+                                         [](auto &&rng) { return std::string(&*rng.begin(), std::ranges::distance(rng)); })) {
+      if (token != "") {
+        path += "/" + token;
 
-      if (token == "catkin_ws") {
-        path += "/src/mes_detect_ball";
-        break;
+        if (token == "catkin_ws") {
+          path += "/src/mes_detect_ball";
+          break;
+        }
       }
     }
-  }
 #else
-  std::string delimiter = "/";
+    std::string delimiter = "/";
 
-  std::size_t pos = 0;
-  std::string token;
-  while ((pos = buf.find(delimiter)) != std::string::npos) {
-    token = buf.substr(0, pos);
-    if (token != "") {
-      path += '/' + token;
+    std::size_t pos = 0;
+    std::string token;
+    while ((pos = buf.find(delimiter)) != std::string::npos) {
+      token = buf.substr(0, pos);
+      if (token != "") {
+        path += '/' + token;
 
-      if (token == "catkin_ws") {
-        path += "/src/mes_detect_ball";
-        break;
+        if (token == "catkin_ws") {
+          path += "/src/mes_detect_ball";
+          break;
+        }
       }
-    }
 
-    buf.erase(0, pos + delimiter.length());
-  }
+      buf.erase(0, pos + delimiter.length());
+    }
 
 #endif
 
-  return path;
+    return path;
 
 #endif    // __linux__
-}
-
-namespace Weight_handle {
+  }
 
   namespace detail {
 #if __cplusplus >= 202002L
@@ -320,7 +322,7 @@ namespace Weight_handle {
     getline(infile, line);
 
     double old_F1_Score;
-    uint32_t store_TN, store_TP, store_FN, store_FP;
+    int store_TN, store_TP, store_FN, store_FP;
     stream << line;
     stream >> old_F1_Score >> store_TN >> store_TP >> store_FN >> store_FP;
     stream.str("");
@@ -328,7 +330,7 @@ namespace Weight_handle {
     infile.close();
 
     // compact the correct rate between storing file and current training data
-    uint32_t TP = static_cast<uint32_t>(confusion(0, 0)), FP = static_cast<uint32_t>(confusion(0, 1)), FN = static_cast<uint32_t>(confusion(1, 0)), TN = static_cast<uint32_t>(confusion(1, 1));
+    int TP = static_cast<int>(confusion(0, 0)), FP = static_cast<int>(confusion(0, 1)), FN = static_cast<int>(confusion(1, 0)), TN = static_cast<int>(confusion(1, 1));
 
     double accuracy = static_cast<double>(TP + TN) / (TP + TN + FP + FN);
     double recall = static_cast<double>(TP) / (TP + FN);
@@ -377,6 +379,6 @@ namespace Weight_handle {
 
     infile.close();
   }
-}    // namespace Weight_handle
+}    // namespace File_handler
 
 #endif

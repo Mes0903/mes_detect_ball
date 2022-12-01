@@ -30,7 +30,7 @@ constexpr uint32_t FEATURE_NUM = 10;
  *                                            the third one is a flag for 100% accuracy, if the accuracy is 100%, we can delete all the other weak learner in adaboost.
  */
 std::tuple<Eigen::VectorXd, double, bool>
-logistic::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y, [[maybe_unused]] uint32_t Iterations, [[maybe_unused]] const Eigen::MatrixXd &train_weight)
+logistic::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y, const Eigen::MatrixXd &train_weight, uint32_t Iterations)
 {
   uint32_t D = FEATURE_NUM;    // dimention is the column of training data, which is 5 in my case, since there is 5 features.
 

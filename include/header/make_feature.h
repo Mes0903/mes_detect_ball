@@ -17,7 +17,7 @@
 #include <cmath>
 #include <Eigen/Eigen>
 
-constexpr uint32_t FEATURE_NUM = 10;
+constexpr int FEATURE_NUM = 10;
 
 /**
  * @brief Append a row to the matrix.
@@ -37,9 +37,9 @@ Eigen::MatrixXd AppendRow(const Eigen::MatrixXd &A, const Eigen::VectorXd &B)
  * @brief Calculate the point of the segment.
  *
  * @param Seg The segment data matrix. It's an Sn*2 matrix, Sn is the number of segments.
- * @return uint32_t The points number of the segment, which is the Sn above.
+ * @return int The points number of the segment, which is the Sn above.
  */
-uint32_t cal_point(const Eigen::MatrixXd &Seg)
+int cal_point(const Eigen::MatrixXd &Seg)
 {
   return Seg.rows();
 }
@@ -52,7 +52,7 @@ uint32_t cal_point(const Eigen::MatrixXd &Seg)
  */
 double cal_std(const Eigen::MatrixXd &Seg)
 {
-  uint32_t n = cal_point(Seg);
+  int n = cal_point(Seg);
   if (n < 2)
     return 0.0;
 

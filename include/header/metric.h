@@ -24,10 +24,10 @@ namespace metric {
    */
   Eigen::MatrixXd cal_confusion_matrix(const Eigen::VectorXd &y, const Eigen::VectorXd &pred_Y)
   {
-    uint32_t R = y.size();
-    uint32_t TP{}, FP{}, FN{}, TN{};
+    int R = y.size();
+    int TP{}, FP{}, FN{}, TN{};
 
-    for (uint32_t i = 0; i < R; ++i) {
+    for (int i = 0; i < R; ++i) {
       if (y(i) == 0 && pred_Y(i) == 0)
         ++TN;
       else if (y(i) == 0 && pred_Y(i) == 1)
@@ -49,9 +49,9 @@ namespace metric {
    * @param data The [thera, r] matrix.
    * @param ROWS The rows number of the matrix.
    */
-  void transform_to_xy(Eigen::MatrixXd &data, const uint32_t ROWS)
+  void transform_to_xy(Eigen::MatrixXd &data, const int ROWS)
   {
-    for (uint32_t i = 0; i < ROWS; i++) {
+    for (int i = 0; i < ROWS; i++) {
       const double theta = M_PI * data(i, 0) / 180;    // transform the radian to angle
       const double r = data(i, 1);    // radius
 

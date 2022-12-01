@@ -26,7 +26,7 @@
 #include <Eigen/Dense>
 #include <limits>
 
-Adaboost A_ball, A_box;
+Adaboost<logistic> A_ball, A_box;
 Normalizer normalizer_ball, normalizer_box;
 
 visualization_msgs::Marker marker;
@@ -149,8 +149,8 @@ int main([[maybe_unused]] int argc, char **argv)
 
   const std::string filepath = get_filepath(argv[0]);
 
-  Weight_handle::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A_ball, normalizer_ball);
-  Weight_handle::load_weight(filepath + "/include/weight_data/adaboost_box_weight.txt", A_box, normalizer_box);
+  File_handler::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A_ball, normalizer_ball);
+  File_handler::load_weight(filepath + "/include/weight_data/adaboost_box_weight.txt", A_box, normalizer_box);
 
   ros::init(argc, argv, "Detection_Nodes");
 

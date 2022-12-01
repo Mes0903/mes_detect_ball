@@ -26,7 +26,7 @@
      * @param ins The instance of the class.
      */
 template <typename Model>
-concept has_fit = requires(Model ins, const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y, uint32_t Iterations, const Eigen::MatrixXd &train_weight)
+concept has_fit = requires(Model ins, const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y, int Iterations, const Eigen::MatrixXd &train_weight)
 {
   {
     ins.store_weight(filepath, outfile)
@@ -62,7 +62,7 @@ struct has_fit<Model, std::void_t<decltype(&Model::fit)> >
                    decltype(std::declval<Model>().fit(std::declval<const Eigen::MatrixXd &>(),
                                                       std::declval<const Eigen::VectorXd &>(),
                                                       std::declval<const Eigen::MatrixXd &>(),
-                                                      std::declval<uint32_t>()))> {};
+                                                      std::declval<int>()))> {};
 
 /**
  * @brief Check if the class has `predict` function.
@@ -78,7 +78,7 @@ struct has_predict<Model, std::void_t<decltype(&Model::predict)> >
 template <typename Model>
 struct valid_Model : std::conjunction<has_fit<Model>, has_predict<Model> > {};
 
-template <typname Model>
+template <typename Model>
 constexpr bool valid_Model_v = valid_Model<Model>::value;
 
 #endif
@@ -94,11 +94,11 @@ template <typename Model>
 #endif
 class Adaboost {
 #if __cplusplus < 202002L
-  static_assert(valid_Model_v<T>, "The Model didn't fit the requires of predict function or fit function");
+  static_assert(valid_Model_v<Model>, "The Model didn't fit the requires of predict function or fit function");
 #endif
 
 public:
-  uint32_t TN{}, TP{}, FN{}, FP{};
+  int TN{}, TP{}, FN{}, FP{};
   int M = 0;    // the number of weak classfiers
   Eigen::VectorXd alpha;    // the vector of weights for weak classfiers
 
@@ -134,7 +134,7 @@ void Adaboost<Model>::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd 
     std::cout << "Training Weak Learner: " << i + 1 << '\n';
     w /= w.sum();
 
-    const auto [pred_Y, err, all_correct] = vec[i].fit(train_X, train_Y, 1000, w);    // pred_Y is the label it predict, err is the error rate.
+    const auto [pred_Y, err, all_correct] = vec[i].fit(train_X, train_Y, w, 1000);    // pred_Y is the label it predict, err is the error rate.
 
     // if the accuracy is 100%, we can delete all the other weak learner in adaboost, just use this weak learner to judge data.
     if (all_correct) {
@@ -165,7 +165,7 @@ void Adaboost<Model>::fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd 
 template <typename Model>
 Eigen::VectorXd Adaboost<Model>::predict(const Eigen::MatrixXd &data)
 {
-  uint32_t R = data.rows();
+  int R = data.rows();
   Eigen::ArrayXd C(R);
   for (int m = 0; m < M; ++m)
     C += alpha(m) * (2 * vec[m].get_label(data).array() - 1);
@@ -246,10 +246,10 @@ void Adaboost<Model>::load_weight([[maybe_unused]] const std::string &filepath, 
 template <typename Model>
 void Adaboost<Model>::set_confusion_matrix(const Eigen::MatrixXd &confusion_matrix)
 {
-  TP = static_cast<uint32_t>(confusion_matrix(0, 0));
-  FP = static_cast<uint32_t>(confusion_matrix(0, 1));
-  FN = static_cast<uint32_t>(confusion_matrix(1, 0));
-  TN = static_cast<uint32_t>(confusion_matrix(1, 1));
+  TP = static_cast<int>(confusion_matrix(0, 0));
+  FP = static_cast<int>(confusion_matrix(0, 1));
+  FN = static_cast<int>(confusion_matrix(1, 0));
+  TN = static_cast<int>(confusion_matrix(1, 1));
 }
 
 /**

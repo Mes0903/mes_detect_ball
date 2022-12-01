@@ -5,6 +5,16 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "implot.h"
+
+#include "file_handler.h"
+#include "make_feature.h"
+#include "segment.h"
+
+#include "adaboost.h"
+#include "logistic.h"
+#include "normalize.h"
+
+#include <Eigen/Eigen>
 #include <chrono>
 #include <thread>
 #include <math.h>
@@ -26,19 +36,60 @@
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
+Adaboost<logistic> A_box, A_ball;
+Normalizer normalizer_ball, normalizer_box;
 
-double box_x_data[720], box_y_data[720];
+constexpr int ROW = 720;
+Eigen::MatrixXd xy_data(ROW, 2);
 
 void Plot_point()
 {
-  if (ImPlot::BeginPlot("Scatter Plot", ImVec2(750, 750))) {
+  if (ImPlot::BeginPlot("Scatter Plot", ImVec2(1250, 1250), ImPlotFlags_Equal)) {
+    ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1);
     ImPlot::SetupAxes("x", "y");
     ImPlot::SetupAxisLimits(ImAxis_X1, -5.0, 5.0);
     ImPlot::SetupAxisLimits(ImAxis_Y1, -10, 10);
 
-    ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.1f);
-    ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 1, ImVec4(0, 1, 0, 0.5f), IMPLOT_AUTO, ImVec4(0, 1, 0, 1));
-    ImPlot::PlotScatter("Data 1", box_x_data, box_y_data, 720);
+    auto [feature_matrix, segment_vec] = section_to_feature(xy_data);    // segment_vec is std::vector<Eigen::MatrixXd>
+
+    //Eigen::MatrixXd feature_matrix_box = normalizer_box.transform(feature_matrix);
+    Eigen::MatrixXd feature_matrix_ball = normalizer_ball.transform(feature_matrix);
+
+    //Eigen::VectorXd pred_Y_box = A_box.predict(feature_matrix_box);  
+    Eigen::VectorXd pred_Y_ball = A_ball.predict(feature_matrix_ball); 
+
+    for (std::size_t i = 0; i < segment_vec.size(); ++i) {
+      ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 3, ImVec4(0, 0.7f, 0, 1), IMPLOT_AUTO, ImVec4(0, 0.7f, 0, 1));
+
+      Eigen::ArrayXd section_x_data = segment_vec[i].col(0).array();
+      Eigen::ArrayXd section_y_data = segment_vec[i].col(1).array();
+
+      double *section_x = section_x_data.data();
+      double *section_y = section_y_data.data();
+
+      if (std::sqrt(std::pow(section_x_data.mean(), 2) + std::pow(section_y_data.mean(), 2)) < 1.5) {
+        //if (pred_Y_box(i) == 1) {
+        //  ImPlot::SetNextMarkerStyle(ImPlotMarker_Square, 3, ImVec4(1, 1, 0, 1), IMPLOT_AUTO, ImVec4(1, 1, 0, 1));
+        //  ImGui::Text("Box is at: [%f, %f]", section_x_data.mean(), section_y_data.mean());
+        //  ImPlot::PlotScatter("Box Section", section_x, section_y, section_x_data.size());
+        //}
+
+
+        if (pred_Y_ball(i) == 1) {
+          ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 3, ImVec4(1, 0, 0, 1), IMPLOT_AUTO, ImVec4(1, 0, 0, 1));
+          ImGui::Text("Ball is at: [%f, %f]", section_x_data.mean(), section_y_data.mean());
+          ImPlot::PlotScatter("Ball Section", section_x, section_y, section_x_data.size());
+        }
+        else {
+          ImPlot::PlotScatter("Normal Point", section_x, section_y, section_x_data.size());
+        }
+      }
+      else {
+        ImPlot::PlotScatter("Normal Point", section_x, section_y, section_x_data.size());
+      }
+    }
+
+
     ImPlot::PopStyleVar();
     ImPlot::EndPlot();
   }
@@ -51,6 +102,15 @@ static void glfw_error_callback(int error, const char *description)
 
 int main(int, char **)
 {
+#if _WIN32
+  const std::string filepath = "D:/document/GitHub/mes_detect_ball";
+#else
+  const std::string filepath = "/home/mes/mes_detect_ball";
+#endif
+
+  File_handler::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A_ball, normalizer_ball);
+  //File_handler::load_weight(filepath + "/include/weight_data/adaboost_box_weight.txt", A_box, normalizer_box);
+
   glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit())
     return 1;
@@ -107,12 +167,8 @@ int main(int, char **)
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
   /*-----------------------------------------------------------------------------------------------------*/
-#if _WIN32
-  const std::string filepath = "D:/document/GitHub/mes_detect_ball/include/dataset/box_xy_data.txt";
-#else
-  const std::string filepath = "/home/mes/mes_detect_ball/include/dataset/box_xy_data.txt";
-#endif
-  std::ifstream infile(filepath);
+
+  std::ifstream infile(filepath + "/include/dataset/ball_xy_data.txt");
   if (infile.fail()) {
     std::cout << "cant found " << filepath << '\n';
     exit(1);
@@ -120,7 +176,6 @@ int main(int, char **)
 
   std::string line;
   std::stringstream ss;
-  int cnt = 0;
   while (!glfwWindowShouldClose(window)) {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     glfwPollEvents();
@@ -132,7 +187,8 @@ int main(int, char **)
     for (int i{}; i < 720; ++i) {
       std::getline(infile, line);
       ss << line;
-      ss >> box_x_data[i] >> box_y_data[i];
+      ss >> xy_data(i, 0) >> xy_data(i, 1);
+
       ss.str("");
       ss.clear();
     }
@@ -144,23 +200,22 @@ int main(int, char **)
 
     if (show_simulation_window) {
       ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
-      ImGui::SetNextWindowSize(ImVec2(750, 750), ImGuiCond_FirstUseEver);
-      ImGui::Begin("Simulation Window", &show_simulation_window);    // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+      ImGui::SetNextWindowSize(ImVec2(1250, 1250), ImGuiCond_FirstUseEver);
+      ImGui::Begin("Simulation Window", &show_simulation_window, ImGuiWindowFlags_MenuBar);    // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
 
       Plot_point();
 
       ImGui::End();
     }
 
-    if (!show_debug_window) {
-      ImGui::SetNextWindowPos(ImVec2(100, 50), ImGuiCond_FirstUseEver);
-      ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
-      ImGui::Begin("Debug Window", &show_debug_window);
-      ImGui::Text("counter = %d", cnt);
-      ImGui::Text("line = %s", line);
-      ImGui::Text("box_xy = [%f, %f]", box_x_data[0], box_y_data[0]);
-      ImGui::End();
-    }
+    //if (!show_debug_window) {
+    //  ImGui::SetNextWindowPos(ImVec2(100, 50), ImGuiCond_FirstUseEver);
+    //  ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
+    //  ImGui::Begin("Debug Window", &show_debug_window);
+    //  ImGui::Text("counter = %d", cnt);
+    //  ImGui::Text("box_xy = [%f, %f]", box_x_data[0], box_y_data[0]);
+    //  ImGui::End();
+    //}
 
     ImGui::Render();
     int display_w, display_h;

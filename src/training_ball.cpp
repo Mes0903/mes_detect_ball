@@ -21,7 +21,14 @@
 
 int main([[maybe_unused]] int argc, char **argv)
 {
-  const std::string filepath = get_filepath(argv[0]);
+  //const std::string filepath = File_handler::get_filepath(argv[0]);
+
+#if _WIN32
+  const std::string filepath = "D:/document/GitHub/mes_detect_ball";
+#else
+  const std::string filepath = "/home/mes/mes_detect_ball";
+#endif
+
   int case_num = 0;
   int sample = 0;
 
@@ -69,7 +76,7 @@ int main([[maybe_unused]] int argc, char **argv)
       A.set_confusion_matrix(confusion_matrix);
       A.print_confusion_matrix();
 
-      Weight_handle::store_weight(confusion_matrix, filepath + "/include/weight_data/adaboost_ball_weight.txt", A, normalizer);
+      File_handler::store_weight(confusion_matrix, filepath + "/include/weight_data/adaboost_ball_weight.txt", A, normalizer);
     }
   }
   else {
@@ -83,7 +90,7 @@ int main([[maybe_unused]] int argc, char **argv)
     Adaboost<logistic> A;
 
     puts("Load Weighting...");
-    Weight_handle::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A, normalizer);
+    File_handler::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A, normalizer);
 
     puts("Transforming test data...");
     test_X = normalizer.transform(test_X);

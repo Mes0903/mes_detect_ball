@@ -24,7 +24,7 @@ public:
   Eigen::VectorXd w;    // the weight vector
 
 public:
-  std::tuple<Eigen::VectorXd, double, bool> fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y, uint32_t Iterations, const Eigen::MatrixXd &train_weight);    // training
+  std::tuple<Eigen::VectorXd, double, bool> fit(const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y, const Eigen::MatrixXd &train_weight, uint32_t Iterations);    // training
 
   Eigen::ArrayXd cal_logistic(const Eigen::ArrayXd &x);    // logistic function
   Eigen::VectorXd get_label(const Eigen::MatrixXd &section);    // get the label of the section

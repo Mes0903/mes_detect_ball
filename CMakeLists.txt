@@ -59,38 +59,36 @@ include_directories(
   ${MODEL_DIR}/logistic
 )
 
-# 
-#add_executable(Training_Ball
-#  ./src/training_ball.cpp
-#  ${MODEL_DIR}/Model.h
-#  ${MODEL_DIR}/normalize.h
-#  ${MODEL_DIR}/normalize.cpp
-#  ${MODEL_DIR}/adaboost/adaboost.h
-#  ${MODEL_DIR}/logistic/logistic.h
-#  ${MODEL_DIR}/logistic/logistic.cpp
-#)
-#
-#target_link_libraries(
-#  Training_Ball
-#  ${catkin_LIBRARIES}
-#  ${Eigen3_LIBRARIES}
-#)
-#
-#add_executable(Training_Box
-#  ./src/training_box.cpp
-#  ${MODEL_DIR}/Model.h
-#  ${MODEL_DIR}/normalize.h
-#  ${MODEL_DIR}/normalize.cpp
-#  ${MODEL_DIR}/adaboost/adaboost.h
-#  ${MODEL_DIR}/logistic/logistic.h
-#  ${MODEL_DIR}/logistic/logistic.cpp
-#)
-#
-#target_link_libraries(
-#  Training_Box
-#  ${catkin_LIBRARIES}
-#  ${Eigen3_LIBRARIES}
-#)
+ 
+add_executable(Training_Ball
+  ./src/training_ball.cpp
+  ${MODEL_DIR}/normalize.h
+  ${MODEL_DIR}/normalize.cpp
+  ${MODEL_DIR}/adaboost/adaboost.h
+  ${MODEL_DIR}/logistic/logistic.h
+  ${MODEL_DIR}/logistic/logistic.cpp
+)
+
+target_link_libraries(
+  Training_Ball
+  ${catkin_LIBRARIES}
+  ${Eigen3_LIBRARIES}
+)
+
+add_executable(Training_Box
+  ./src/training_box.cpp
+  ${MODEL_DIR}/normalize.h
+  ${MODEL_DIR}/normalize.cpp
+  ${MODEL_DIR}/adaboost/adaboost.h
+  ${MODEL_DIR}/logistic/logistic.h
+  ${MODEL_DIR}/logistic/logistic.cpp
+)
+
+target_link_libraries(
+  Training_Box
+  ${catkin_LIBRARIES}
+  ${Eigen3_LIBRARIES}
+)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/simulation)
 
