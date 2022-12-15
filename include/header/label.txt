@@ -1,4 +1,3 @@
-#pragma once
 #ifndef LABEL_H__
 #define LABEL_H__
 

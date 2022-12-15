@@ -1,11 +1,5 @@
-#pragma once
 #ifndef FILE_HANDLER_H__
 #define FILE_HANDLER_H__
-
-#if _WIN32
-#define _USE_MATH_DEFINES
-#include <math.h>
-#endif
 
 /**
  * @file file_handler.h
@@ -49,35 +43,7 @@ namespace Load_Matrix {
    * @param COLS The cols number of the file.
    * @return Eigen::MatrixXd The matrix which have completed loading.
    */
-  Eigen::MatrixXd readDataSet(const std::string filepath, const int ROWS, const int COLS)
-  {
-    std::ifstream infile(filepath);
-    if (infile.fail()) {
-      std::cout << "cant found " << filepath << '\n';
-      exit(1);
-    }
-
-    Eigen::MatrixXd result(ROWS, COLS);
-    std::string line;
-    std::stringstream stream;
-    int row = 0;
-    for (int cnt = 0; cnt < ROWS; ++cnt) {
-      double buff;
-      getline(infile, line);    // read every line of the file
-      stream << line;
-      for (int col = 0; col < COLS; ++col) {
-        stream >> buff;
-        result(row, col) = buff;
-      }
-      ++row;
-
-      CLEAN_STREAM;
-    }
-
-    infile.close();
-
-    return result;
-  };
+  Eigen::MatrixXd readDataSet(const std::string filepath, const int ROWS, const int COLS);
 
   /**
    * @brief Read the Labeling data from the file and load it to the matrix
@@ -86,36 +52,9 @@ namespace Load_Matrix {
    * @param SIZE The lines number of the file.
    * @return Eigen::VectorXd  The vector which have completed loading.
    */
-  Eigen::VectorXd readLabel(const std::string filepath, const int SIZE)
-  {
-    std::ifstream infile(filepath);
-    if (infile.fail()) {
-      std::cout << "cant found " << filepath << '\n';
-      exit(1);
-    }
+  Eigen::VectorXd readLabel(const std::string filepath, const int SIZE);
 
-    Eigen::VectorXd result(SIZE);
-    std::string line;
-    std::stringstream stream;
-
-    int row = 0;
-    for (int cnt = 0; cnt < SIZE; ++cnt) {
-      double buff;
-      getline(infile, line);    // read every line of the file
-      stream << line;
-      stream >> buff;
-      result(row) = buff;
-      ++row;
-
-      CLEAN_STREAM;
-    }
-
-    infile.close();
-    return result;
-  }
 }    // namespace Load_Matrix
-
-
 
 namespace File_handler {
 
@@ -125,52 +64,7 @@ namespace File_handler {
   * @param filepath the executable file path, which is argv[0].
   * @return std::string The project directory path
   */
-  std::string get_filepath([[maybe_unused]] const char *filepath)
-  {
-#if _WIN32
-    return "D:/document/GitHub/mes_detect_ball";
-#else
-    std::string buf = filepath;
-    std::string path;
-
-#if __cplusplus >= 202002L
-    for (const std::string token : buf | std::ranges::views::split('/')    // split the file path by '/'
-                                     | std::ranges::views::transform(    // transform the output type to the std::string
-                                         [](auto &&rng) { return std::string(&*rng.begin(), std::ranges::distance(rng)); })) {
-      if (token != "") {
-        path += "/" + token;
-
-        if (token == "catkin_ws") {
-          path += "/src/mes_detect_ball";
-          break;
-        }
-      }
-    }
-#else
-    std::string delimiter = "/";
-
-    std::size_t pos = 0;
-    std::string token;
-    while ((pos = buf.find(delimiter)) != std::string::npos) {
-      token = buf.substr(0, pos);
-      if (token != "") {
-        path += '/' + token;
-
-        if (token == "catkin_ws") {
-          path += "/src/mes_detect_ball";
-          break;
-        }
-      }
-
-      buf.erase(0, pos + delimiter.length());
-    }
-
-#endif
-
-    return path;
-
-#endif    // __linux__
-  }
+  std::string get_filepath([[maybe_unused]] const char *filepath);
 
   namespace detail {
 #if __cplusplus >= 202002L
@@ -233,8 +127,12 @@ namespace File_handler {
 
     template <typename T>
     struct can_store<T, std::void_t<decltype(&T::store_weight)> >
-        : std::is_same<void,
-                       decltype(std::declval<T>().store_weight(std::declval<const std::string>(), std::declval<std::ofstream &>()))> {};
+        : std::is_invocable_r<void,
+                              decltype(&T::store_weight),
+                              T &,
+                              const std::string,
+                              std::ofstream &> {};
+
 
     /**
      * @brief Check if the weight in class can be loaded.
@@ -244,8 +142,11 @@ namespace File_handler {
 
     template <typename T>
     struct can_load<T, std::void_t<decltype(&T::load_weight)> >
-        : std::is_same<void,
-                       decltype(std::declval<T>().load_weight(std::declval<const std::string>(), std::declval<std::ifstream &>()))> {};
+        : std::is_invocable_r<void,
+                              decltype(&T::load_weight),
+                              T &,
+                              const std::string,
+                              std::ifstream &> {};
 
 
     /**

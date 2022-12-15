@@ -1,4 +1,3 @@
-#pragma once
 #ifndef ADABOOST_CLASSIFIER__
 #define ADABOOST_CLASSIFIER__
 
@@ -58,11 +57,13 @@ struct has_fit : std::false_type {};
 
 template <typename Model>
 struct has_fit<Model, std::void_t<decltype(&Model::fit)> >
-    : std::is_same<std::tuple<Eigen::VectorXd, double, bool>,
-                   decltype(std::declval<Model>().fit(std::declval<const Eigen::MatrixXd &>(),
-                                                      std::declval<const Eigen::VectorXd &>(),
-                                                      std::declval<const Eigen::MatrixXd &>(),
-                                                      std::declval<int>()))> {};
+    : std::is_invocable_r<std::tuple<Eigen::VectorXd, double, bool>,
+                          decltype(&Model::fit),
+                          Model &,
+                          const Eigen::MatrixXd &,
+                          const Eigen::VectorXd &,
+                          const Eigen::MatrixXd &,
+                          int> {};
 
 /**
  * @brief Check if the class has `predict` function.
@@ -72,8 +73,10 @@ struct has_predict : std::false_type {};
 
 template <typename Model>
 struct has_predict<Model, std::void_t<decltype(&Model::predict)> >
-    : std::is_same<Eigen::VectorXd,
-                   decltype(std::declval<Model>().predict(std::declval<const Eigen::MatrixXd &>()))> {};
+    : std::is_invocable_r<Eigen::VectorXd,
+                          decltype(&Model::predict),
+                          Model &,
+                          const Eigen::MatrixXd &> {};
 
 template <typename Model>
 struct valid_Model : std::conjunction<has_fit<Model>, has_predict<Model> > {};

@@ -1,18 +1,16 @@
 // Sample app built with Dear ImGui and ImPlot
 // This app uses implot and imgui, but does not output to any backend! It only serves as a proof that an app can be built, linked, and run.
 
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
-#include "implot.h"
+#include "imgui_header.h"
+#include "show_control_window.h"
+#include "show_simulation_window.h"
 
-#include "file_handler.h"
 #include "make_feature.h"
-#include "segment.h"
-
 #include "adaboost.h"
 #include "logistic.h"
+#include "segment.h"
 #include "normalize.h"
+#include "file_handler.h"
 
 #include <Eigen/Eigen>
 #include <chrono>
@@ -32,6 +30,7 @@
 #endif
 #include <GLFW/glfw3.h>    // Will drag system OpenGL headers
 
+
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
@@ -39,61 +38,8 @@
 Adaboost<logistic> A_box, A_ball;
 Normalizer normalizer_ball, normalizer_box;
 
-constexpr int ROW = 720;
+inline constexpr int ROW = 720;
 Eigen::MatrixXd xy_data(ROW, 2);
-
-void Plot_point()
-{
-  if (ImPlot::BeginPlot("Scatter Plot", ImVec2(1250, 1250), ImPlotFlags_Equal)) {
-    ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1);
-    ImPlot::SetupAxes("x", "y");
-    ImPlot::SetupAxisLimits(ImAxis_X1, -5.0, 5.0);
-    ImPlot::SetupAxisLimits(ImAxis_Y1, -10, 10);
-
-    auto [feature_matrix, segment_vec] = section_to_feature(xy_data);    // segment_vec is std::vector<Eigen::MatrixXd>
-
-    //Eigen::MatrixXd feature_matrix_box = normalizer_box.transform(feature_matrix);
-    Eigen::MatrixXd feature_matrix_ball = normalizer_ball.transform(feature_matrix);
-
-    //Eigen::VectorXd pred_Y_box = A_box.predict(feature_matrix_box);  
-    Eigen::VectorXd pred_Y_ball = A_ball.predict(feature_matrix_ball); 
-
-    for (std::size_t i = 0; i < segment_vec.size(); ++i) {
-      ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 3, ImVec4(0, 0.7f, 0, 1), IMPLOT_AUTO, ImVec4(0, 0.7f, 0, 1));
-
-      Eigen::ArrayXd section_x_data = segment_vec[i].col(0).array();
-      Eigen::ArrayXd section_y_data = segment_vec[i].col(1).array();
-
-      double *section_x = section_x_data.data();
-      double *section_y = section_y_data.data();
-
-      if (std::sqrt(std::pow(section_x_data.mean(), 2) + std::pow(section_y_data.mean(), 2)) < 1.5) {
-        //if (pred_Y_box(i) == 1) {
-        //  ImPlot::SetNextMarkerStyle(ImPlotMarker_Square, 3, ImVec4(1, 1, 0, 1), IMPLOT_AUTO, ImVec4(1, 1, 0, 1));
-        //  ImGui::Text("Box is at: [%f, %f]", section_x_data.mean(), section_y_data.mean());
-        //  ImPlot::PlotScatter("Box Section", section_x, section_y, section_x_data.size());
-        //}
-
-
-        if (pred_Y_ball(i) == 1) {
-          ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 3, ImVec4(1, 0, 0, 1), IMPLOT_AUTO, ImVec4(1, 0, 0, 1));
-          ImGui::Text("Ball is at: [%f, %f]", section_x_data.mean(), section_y_data.mean());
-          ImPlot::PlotScatter("Ball Section", section_x, section_y, section_x_data.size());
-        }
-        else {
-          ImPlot::PlotScatter("Normal Point", section_x, section_y, section_x_data.size());
-        }
-      }
-      else {
-        ImPlot::PlotScatter("Normal Point", section_x, section_y, section_x_data.size());
-      }
-    }
-
-
-    ImPlot::PopStyleVar();
-    ImPlot::EndPlot();
-  }
-}
 
 static void glfw_error_callback(int error, const char *description)
 {
@@ -102,15 +48,6 @@ static void glfw_error_callback(int error, const char *description)
 
 int main(int, char **)
 {
-#if _WIN32
-  const std::string filepath = "D:/document/GitHub/mes_detect_ball";
-#else
-  const std::string filepath = "/home/mes/mes_detect_ball";
-#endif
-
-  File_handler::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A_ball, normalizer_ball);
-  //File_handler::load_weight(filepath + "/include/weight_data/adaboost_box_weight.txt", A_box, normalizer_box);
-
   glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit())
     return 1;
@@ -162,11 +99,20 @@ int main(int, char **)
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init(glsl_version);
 
-  bool show_simulation_window = true;
-  bool show_debug_window = true;
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+  bool show_simulation_window = true;
+
   /*-----------------------------------------------------------------------------------------------------*/
+
+#if _WIN32
+  const std::string filepath = "D:/document/GitHub/mes_detect_ball";
+#else
+  const std::string filepath = "/home/mes/mes_detect_ball";
+#endif
+
+  File_handler::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A_ball, normalizer_ball);
+  //File_handler::load_weight(filepath + "/include/weight_data/adaboost_box_weight.txt", A_box, normalizer_box);
 
   std::ifstream infile(filepath + "/include/dataset/ball_xy_data.txt");
   if (infile.fail()) {
@@ -198,24 +144,11 @@ int main(int, char **)
       infile.seekg(0, std::ios::beg);
     }
 
-    if (show_simulation_window) {
-      ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
-      ImGui::SetNextWindowSize(ImVec2(1250, 1250), ImGuiCond_FirstUseEver);
-      ImGui::Begin("Simulation Window", &show_simulation_window, ImGuiWindowFlags_MenuBar);    // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+    ShowControlWindow(show_simulation_window);
 
-      Plot_point();
+    if (show_simulation_window)
+      ShowSimulation();
 
-      ImGui::End();
-    }
-
-    //if (!show_debug_window) {
-    //  ImGui::SetNextWindowPos(ImVec2(100, 50), ImGuiCond_FirstUseEver);
-    //  ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
-    //  ImGui::Begin("Debug Window", &show_debug_window);
-    //  ImGui::Text("counter = %d", cnt);
-    //  ImGui::Text("box_xy = [%f, %f]", box_x_data[0], box_y_data[0]);
-    //  ImGui::End();
-    //}
 
     ImGui::Render();
     int display_w, display_h;

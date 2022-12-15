@@ -1,4 +1,3 @@
-#pragma once
 #ifndef NORMALIZER__
 #define NORMALIZER__
 

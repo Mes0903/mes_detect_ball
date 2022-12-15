@@ -1,4 +1,3 @@
-#pragma once
 #ifndef WEAK_LEARNER__
 #define WEAK_LEARNER__
 

@@ -13,6 +13,7 @@ if(WIN32)
   set(EIGEN3_INCLUDE_DIRS D:/Eigen) # SET UR EIGEN Directory
   if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     MESSAGE("==================== USING MSVC TO COMILE ====================")
+    add_compile_options(/wd4819)
     set(CMAKE_CXX_FLAGS_DEBUG "/O2")
     set(CMAKE_CXX_FLAGS_RELEASE "/O2")
   else()
@@ -62,6 +63,16 @@ include_directories(
  
 add_executable(Training_Ball
   ./src/training_ball.cpp
+
+  ${PROJECT_HEADER}/file_handler.h
+  ${PROJECT_HEADER}/file_handler.cpp
+  ${PROJECT_HEADER}/make_feature.h
+  ${PROJECT_HEADER}/make_feature.cpp
+  ${PROJECT_HEADER}/metric.h
+  ${PROJECT_HEADER}/metric.cpp
+  ${PROJECT_HEADER}/segment.h
+  ${PROJECT_HEADER}/segment.cpp
+
   ${MODEL_DIR}/normalize.h
   ${MODEL_DIR}/normalize.cpp
   ${MODEL_DIR}/adaboost/adaboost.h
@@ -77,6 +88,16 @@ target_link_libraries(
 
 add_executable(Training_Box
   ./src/training_box.cpp
+
+  ${PROJECT_HEADER}/file_handler.h
+  ${PROJECT_HEADER}/file_handler.cpp
+  ${PROJECT_HEADER}/make_feature.h
+  ${PROJECT_HEADER}/make_feature.cpp
+  ${PROJECT_HEADER}/metric.h
+  ${PROJECT_HEADER}/metric.cpp
+  ${PROJECT_HEADER}/segment.h
+  ${PROJECT_HEADER}/segment.cpp
+
   ${MODEL_DIR}/normalize.h
   ${MODEL_DIR}/normalize.cpp
   ${MODEL_DIR}/adaboost/adaboost.h

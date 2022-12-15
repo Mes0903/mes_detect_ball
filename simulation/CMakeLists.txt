@@ -15,12 +15,31 @@ include_directories(
   ${MODEL_DIR}/logistic
   ${SIMULATION_THIRD_DIR}/imgui
   ${SIMULATION_THIRD_DIR}/implot
+  ${SIMULATION_DIR}/include/
+  ${SIMULATION_DIR}/include/windows_control
+  ${SIMULATION_DIR}/include/simulation_handler
 )
 
 add_subdirectory(${SIMULATION_THIRD_DIR})
 
 add_executable(
   DETECTION_SIMULATION 
+
+  ${PROJECT_HEADER}/file_handler.h
+  ${PROJECT_HEADER}/file_handler.cpp
+  ${PROJECT_HEADER}/make_feature.h
+  ${PROJECT_HEADER}/make_feature.cpp
+  ${PROJECT_HEADER}/metric.h
+  ${PROJECT_HEADER}/metric.cpp
+  ${PROJECT_HEADER}/segment.h
+  ${PROJECT_HEADER}/segment.cpp
+
+  ${SIMULATION_DIR}/include/imgui_header.h
+  ${SIMULATION_DIR}/include/windows_control/show_control_window.h
+  ${SIMULATION_DIR}/include/windows_control/show_control_window.cpp
+  ${SIMULATION_DIR}/include/simulation_handler/show_simulation_window.h
+  ${SIMULATION_DIR}/include/simulation_handler/show_simulation_window.cpp
+  
   ${SIMULATION_DIR}/src/simulation.cpp
   ${MODEL_DIR}/normalize.h
   ${MODEL_DIR}/normalize.cpp
@@ -55,29 +74,3 @@ elseif(UNIX)
   )
 
 endif()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# add_custom_target(Makefile COMMAND make
-#                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src
-# )
