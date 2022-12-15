@@ -39,6 +39,8 @@ add_executable(
   ${SIMULATION_DIR}/include/windows_control/show_control_window.cpp
   ${SIMULATION_DIR}/include/simulation_handler/show_simulation_window.h
   ${SIMULATION_DIR}/include/simulation_handler/show_simulation_window.cpp
+  ${SIMULATION_DIR}/include/simulation_handler/frame_handler.h
+  ${SIMULATION_DIR}/include/simulation_handler/frame_handler.cpp
   
   ${SIMULATION_DIR}/src/simulation.cpp
   ${MODEL_DIR}/normalize.h

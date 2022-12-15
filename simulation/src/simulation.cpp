@@ -4,6 +4,7 @@
 #include "imgui_header.h"
 #include "show_control_window.h"
 #include "show_simulation_window.h"
+#include "frame_handler.h"
 
 #include "make_feature.h"
 #include "adaboost.h"
@@ -41,6 +42,8 @@ Normalizer normalizer_ball, normalizer_box;
 inline constexpr int ROW = 720;
 Eigen::MatrixXd xy_data(ROW, 2);
 
+int frame = 0, max_frame;
+
 static void glfw_error_callback(int error, const char *description)
 {
   fprintf(stderr, "Glfw Error %d: %s\n", error, description);
@@ -71,8 +74,8 @@ int main(int, char **)
   const char *glsl_version = "#version 130";
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-  //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-  //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
+  // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+  // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif
 
   // Create window with graphics context
@@ -88,12 +91,12 @@ int main(int, char **)
   ImPlot::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
   (void) io;
-  //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-  //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
-  //ImGui::StyleColorsLight();
+  // ImGui::StyleColorsLight();
 
   // Setup Platform/Renderer backends
   ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -112,43 +115,29 @@ int main(int, char **)
 #endif
 
   File_handler::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A_ball, normalizer_ball);
-  //File_handler::load_weight(filepath + "/include/weight_data/adaboost_box_weight.txt", A_box, normalizer_box);
+  // File_handler::load_weight(filepath + "/include/weight_data/adaboost_box_weight.txt", A_box, normalizer_box);
 
-  std::ifstream infile(filepath + "/include/dataset/ball_xy_data.txt");
+  transform_frame(filepath + "/include/dataset/ball_xy_data.txt", filepath + "/include/dataset/ball_xy_data_bin.txt");
+
+  std::ifstream infile(filepath + "/include/dataset/ball_xy_data_bin.txt", std::ios::binary);
   if (infile.fail()) {
-    std::cout << "cant found " << filepath << '\n';
+    std::cout << "cant found " << filepath + "/include/dataset/ball_xy_data_bin.txt" << '\n';
     exit(1);
   }
 
-  std::string line;
-  std::stringstream ss;
   while (!glfwWindowShouldClose(window)) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     glfwPollEvents();
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    for (int i{}; i < 720; ++i) {
-      std::getline(infile, line);
-      ss << line;
-      ss >> xy_data(i, 0) >> xy_data(i, 1);
-
-      ss.str("");
-      ss.clear();
-    }
-
-    if (infile.eof()) {
-      infile.clear();
-      infile.seekg(0, std::ios::beg);
-    }
+    read_frame(infile);
 
     ShowControlWindow(show_simulation_window);
 
     if (show_simulation_window)
       ShowSimulation();
-
 
     ImGui::Render();
     int display_w, display_h;
