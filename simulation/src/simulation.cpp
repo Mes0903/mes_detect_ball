@@ -3,6 +3,7 @@
 
 #include "imgui_header.h"
 #include "show_control_window.h"
+#include "show_label_window.h"
 #include "show_simulation_window.h"
 #include "frame_handler.h"
 
@@ -13,6 +14,7 @@
 #include "normalize.h"
 #include "file_handler.h"
 
+#include <type_traits>
 #include <Eigen/Eigen>
 #include <chrono>
 #include <thread>
@@ -78,6 +80,7 @@ int main(int, char **)
   // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif
 
+
   // Create window with graphics context
   GLFWwindow *window = glfwCreateWindow(1000, 800, "Detection simulation", NULL, NULL);
   if (window == NULL)
@@ -95,7 +98,8 @@ int main(int, char **)
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
   // Setup Dear ImGui style
-  ImGui::StyleColorsDark();
+  ImGui::StyleColorsClassic();
+  // ImGui::StyleColorsDark();
   // ImGui::StyleColorsLight();
 
   // Setup Platform/Renderer backends
@@ -104,6 +108,7 @@ int main(int, char **)
 
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+  bool show_label_window = true;
   bool show_simulation_window = true;
 
   /*-----------------------------------------------------------------------------------------------------*/
@@ -132,7 +137,10 @@ int main(int, char **)
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ShowControlWindow(show_simulation_window);
+    ShowControlWindow(show_label_window, show_simulation_window);
+
+    if (show_label_window)
+      ShowLabel(infile);
 
     if (show_simulation_window)
       ShowSimulation(infile);

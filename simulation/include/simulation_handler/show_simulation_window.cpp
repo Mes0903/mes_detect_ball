@@ -140,8 +140,10 @@ void ShowSimulation(std::ifstream &infile)
       ImPlot::SetupAxisLimits(ImAxis_X1, -5.0, 5.0);
       ImPlot::SetupAxisLimits(ImAxis_Y1, -10, 10);
 
-      double order_using_xy = 2000;
+      double order_using_xy = 0;
+      ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 0, ImVec4(0, 0.7f, 0, 1), IMPLOT_AUTO, ImVec4(0, 0.7f, 0, 1));
       ImPlot::PlotScatter("Normal Point", &order_using_xy, &order_using_xy, 1);
+      ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 0, ImVec4(1, 0, 0, 1), IMPLOT_AUTO, ImVec4(1, 0, 0, 1));
       ImPlot::PlotScatter("Ball Section", &order_using_xy, &order_using_xy, 1);
 
       auto [feature_matrix, segment_vec] = section_to_feature(xy_data);    // segment_vec is std::vector<Eigen::MatrixXd>
@@ -168,7 +170,7 @@ void ShowSimulation(std::ifstream &infile)
           //   ImPlot::PlotScatter("Box Section", section_x, section_y, section_x_data.size());
           // }
 
-
+          // ImGui::IsMouseClicked(i);
           if (pred_Y_ball(i) == 1) {
             ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 1, ImVec4(1, 0, 0, 1), IMPLOT_AUTO, ImVec4(1, 0, 0, 1));
             ImPlot::PlotScatter("Ball Section", section_x, section_y, section_x_data.size());
@@ -187,7 +189,7 @@ void ShowSimulation(std::ifstream &infile)
 
       ImPlot::PopStyleVar();
       ImPlot::EndPlot();
-    }
+    }    // end ImPlot::BeginPlot("Simulation", ...)
 
     ImGui::TreePop();
   }
