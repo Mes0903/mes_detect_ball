@@ -1,5 +1,6 @@
 #include "imgui_header.h"
 #include "show_simulation_window.h"
+#include "frame_handler.h"
 
 #include "make_feature.h"
 #include "adaboost.h"
@@ -20,6 +21,10 @@ static double Ball_X{}, Ball_Y{}, Box_X{}, Box_Y{};
 static int simulation_window_size = 750;
 extern int frame, max_frame;
 static int fps = 60;
+
+static bool update_frame = false;
+static auto current_time = std::chrono::system_clock::now();
+static bool auto_play = true;
 
 void ShowSimulationInformation()
 {
@@ -43,33 +48,42 @@ void ShowSimulationInformation()
     ImGui::SliderInt("Simulation Window size", &simulation_window_size, 100, 2000, "%d");
 
     /*----------Auto play and Replay----------*/
-    static bool auto_play = true;
-    static bool replay = true;
-
     ImGui::Checkbox("Auto Play", &auto_play);
-    if (auto_play && frame < max_frame)
+    if (auto_play && update_frame && frame < max_frame) {
+      update_frame = true;
       ++frame;
+    }
 
     ImGui::SameLine();
+
+    static bool replay = true;
     ImGui::Checkbox("Replay", &replay);
-    if (replay && frame >= max_frame)
+    if (replay && update_frame && frame >= max_frame) {
+      update_frame = true;
       frame = 0;
+    }
 
     ImGui::Text("Max Frame: %d", max_frame);
 
     /*----------Frame Control----------*/
     ImGui::PushButtonRepeat(true);
 
-    if (ImGui::ArrowButton("frame_left", ImGuiDir_Left) && !auto_play && frame > 0)
+    if (ImGui::ArrowButton("frame_left", ImGuiDir_Left) && !auto_play && frame > 0) {
+      update_frame = true;
       --frame;
+    }
 
     ImGui::SameLine(0.0f, spacing);
-    if (ImGui::ArrowButton("frame_right", ImGuiDir_Right) && !auto_play && frame < max_frame)
+    if (ImGui::ArrowButton("frame_right", ImGuiDir_Right) && !auto_play && frame < max_frame) {
+      update_frame = true;
       ++frame;
+    }
 
     ImGui::PopButtonRepeat();
     ImGui::SameLine(0.0f, spacing);
-    ImGui::SliderInt("Frame", &frame, 0, max_frame, "%d");
+    if (ImGui::SliderInt("Frame", &frame, 0, max_frame, "%d"))
+      update_frame = true;
+
     ImGui::SameLine();
     ImGui::Text(": %d", frame);
 
@@ -94,18 +108,33 @@ void ShowSimulationInformation()
   }
 }
 
-void ShowSimulation()
+void ShowSimulation(std::ifstream &infile)
 {
   ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2(500, 500), ImGuiCond_FirstUseEver);
   ImGui::Begin("Simulation Window");
 
+  if (auto_play) {
+    if (auto now = std::chrono::system_clock::now();
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - current_time).count() > (1000 / fps)) {
+      current_time = now;
+      update_frame = true;
+    }
+    else {
+      update_frame = false;
+    }
+  }
+  else {
+    update_frame = false;
+  }
+
   ShowSimulationInformation();
 
-  if (ImGui::TreeNodeEx("Simulation window")) {
-    if (ImPlot::BeginPlot("Simulation", ImVec2(simulation_window_size, simulation_window_size))) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000 / fps));
+  if (update_frame)
+    read_frame(infile);
 
+  if (ImGui::TreeNodeEx("Simulation window")) {
+    if (ImPlot::BeginPlot("Simulation", ImVec2(static_cast<float>(simulation_window_size), static_cast<float>(simulation_window_size)))) {
       ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1);
       ImPlot::SetupAxes("x", "y");
       ImPlot::SetupAxisLimits(ImAxis_X1, -5.0, 5.0);
@@ -159,6 +188,7 @@ void ShowSimulation()
       ImPlot::PopStyleVar();
       ImPlot::EndPlot();
     }
+
     ImGui::TreePop();
   }
 

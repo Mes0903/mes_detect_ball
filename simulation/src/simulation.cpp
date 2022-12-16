@@ -132,12 +132,10 @@ int main(int, char **)
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    read_frame(infile);
-
     ShowControlWindow(show_simulation_window);
 
     if (show_simulation_window)
-      ShowSimulation();
+      ShowSimulation(infile);
 
     ImGui::Render();
     int display_w, display_h;
