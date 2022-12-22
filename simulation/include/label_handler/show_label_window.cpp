@@ -169,6 +169,14 @@ void ShowLabelInformation(const std::string &filepath, std::fstream &feature_fil
       File_handler::output_label_data(label_file, label_output_path);
     }
 
+    /*----------Show Label Rect and Auto Label----------*/
+
+    ImGui::Checkbox("Show Label Rect", &LI.show_rect);
+
+    ImGui::SameLine();
+
+    ImGui::Checkbox("Auto Label", &LI.auto_label);
+
     /*----------------------------------------*/
 
     ImGui::TreePop();
@@ -251,6 +259,10 @@ void ShowLabel(std::ifstream &infile, const std::string &filepath, const int max
       ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 0, ImVec4(1, 0, 0, 1), IMPLOT_AUTO, ImVec4(1, 0, 0, 1));
       ImPlot::PlotScatter("Ball Section", &order_using_xy, &order_using_xy, 1);
 
+      static ImPlotRect rect(0, 5, 0, 5);
+      if (LI.show_rect)
+        ImPlot::DragRect(0, &rect.X.Min, &rect.Y.Min, &rect.X.Max, &rect.Y.Max, ImVec4(1, 0, 1, 1), ImPlotDragToolFlags_None);
+
       for (int i = 0; i < segment_vec.size(); ++i) {
         const Eigen::MatrixXd &segment = segment_vec[i];
 
@@ -274,6 +286,15 @@ void ShowLabel(std::ifstream &infile, const std::string &filepath, const int max
             }
           }
         }
+        if (LI.show_rect && LI.auto_label) {
+          for (auto data_point : segment.rowwise()) {
+            if ((rect.X.Min < data_point(0) && data_point(0) < rect.X.Max) && (rect.Y.Min < data_point(1) && data_point(1) < rect.Y.Max)) {
+              segment_label[i] = 1;
+
+              break;
+            }
+          }
+        }
 
         if (segment_label[i] == 1) {
           ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 1, ImVec4(1, 0, 0, 1), IMPLOT_AUTO, ImVec4(1, 0, 0, 1));
@@ -285,7 +306,7 @@ void ShowLabel(std::ifstream &infile, const std::string &filepath, const int max
         }
       }
 
-      if (LI.save_label) {
+      if (LI.save_label || (LI.show_rect && LI.auto_label)) {
         LI.save_label = false;
         bool has_been_writed = (label_size_vec[LI.frame] == 0);
 

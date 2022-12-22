@@ -8,6 +8,8 @@ struct LabelAnimationInfo : public AnimationInfo {
   bool save_label = false;
   bool enable_enter_save = false;
   bool output_txt = false;
+  bool show_rect = false;
+  bool auto_label = false;
   int current_save_frame = -1;
   int writed_max_frame = 0;
 };
