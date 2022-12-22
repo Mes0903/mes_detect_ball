@@ -8,22 +8,21 @@
 
 #include "file_handler.h"
 #include "normalize.h"
+#include "make_feature.h"
+
 #include <Eigen/Eigen>
 #include <string>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <unordered_set>
 
 #if __cplusplus >= 202002L
-
 #include <string_view>
 #include <ranges>
-
 #else
-
 #include <type_traits>
-
 #endif
 
 #define CLEAN_STREAM \
@@ -31,7 +30,6 @@
   stream.clear()
 
 namespace Load_Matrix {
-
   /**
    * @brief Read the data from the filepath to the matrix.
    *
@@ -44,7 +42,8 @@ namespace Load_Matrix {
   {
     std::ifstream infile(filepath);
     if (infile.fail()) {
-      std::cout << "cant found " << filepath << '\n';
+      std::cerr << "cant found " << filepath << '\n';
+      std::cin.get();
       exit(1);
     }
 
@@ -81,7 +80,8 @@ namespace Load_Matrix {
   {
     std::ifstream infile(filepath);
     if (infile.fail()) {
-      std::cout << "cant found " << filepath << '\n';
+      std::cerr << "cant found " << filepath << '\n';
+      std::cin.get();
       exit(1);
     }
 
@@ -107,15 +107,14 @@ namespace Load_Matrix {
 }    // namespace Load_Matrix
 
 
-
 namespace File_handler {
 
   /**
-  * @brief Return the project directory path.
-  *
-  * @param filepath the executable file path, which is argv[0].
-  * @return std::string The project directory path
-  */
+   * @brief Return the project directory path.
+   *
+   * @param filepath the executable file path, which is argv[0].
+   * @return std::string The project directory path
+   */
   std::string get_filepath([[maybe_unused]] const char *filepath)
   {
 #if _WIN32
@@ -162,4 +161,113 @@ namespace File_handler {
 
 #endif    // __linux__
   }
+
+  int transform_frame(const std::string &in_filepath, const std::string &out_filepath)
+  {
+    int max_frame = 0;
+
+    std::ifstream infile(in_filepath);
+    if (infile.fail()) {
+      std::cerr << "cant found " << in_filepath << '\n';
+      std::cin.get();
+      exit(1);
+    }
+
+    std::ofstream outfile(out_filepath, std::ios::binary);
+    if (outfile.fail()) {
+      std::cerr << "cant found " << out_filepath << '\n';
+      std::cin.get();
+      exit(1);
+    }
+
+    std::string line;
+    std::stringstream ss;
+    double x, y;
+    while (std::getline(infile, line)) {
+      ++max_frame;
+
+      ss << line;
+      ss >> x >> y;
+
+      outfile.write(reinterpret_cast<char *>(&x), sizeof(double));
+      outfile.write(reinterpret_cast<char *>(&y), sizeof(double));
+
+      ss.str("");
+      ss.clear();
+    }
+
+    max_frame /= 720;
+    --max_frame;
+
+    return max_frame;
+  }
+
+  void read_frame(std::ifstream &infile, Eigen::MatrixXd &xy_data, const int frame)
+  {
+    infile.seekg(frame * sizeof(double) * 2 * 720, std::ios::beg);
+
+    for (int i{}; i < 720; ++i) {
+      infile.read(reinterpret_cast<char *>(&xy_data(i, 0)), sizeof(double));
+      infile.read(reinterpret_cast<char *>(&xy_data(i, 1)), sizeof(double));
+    }
+  }
+
+  void write_bin_feature_data(std::fstream &feature_file, const int feature_index, const Eigen::MatrixXd &feature_matrix)
+  {
+    feature_file.seekp(feature_index, std::ios::beg);
+    for (const auto &row : feature_matrix.rowwise()) {
+      for (double feature : row)
+        feature_file.write(reinterpret_cast<char *>(&feature), sizeof(double));
+    }
+  }
+
+  void write_bin_label_data(std::fstream &label_file, const int label_index, const std::vector<int> &segment_label)
+  {
+    label_file.seekp(label_index, std::ios::beg);
+    for (int label : segment_label)
+      label_file.write(reinterpret_cast<char *>(&label), sizeof(int));
+  }
+
+  void output_feature_data(std::fstream &feature_file, const std::string &filepath)
+  {
+    auto bk_p = feature_file.tellg();
+
+    std::ofstream outfile(filepath, std::ios::out | std::ios::trunc);
+    if (outfile.fail()) {
+      std::cerr << "Cannot open file" << filepath << '\n';
+      std::cin.get();
+      return;
+    }
+
+    feature_file.seekg(0, std::ios::beg);
+    double buf[FEATURE_NUM];
+    while (feature_file.read(reinterpret_cast<char *>(buf), FEATURE_NUM * sizeof(double))) {
+      for (int i{}; i < FEATURE_NUM; ++i)
+        outfile << buf[i] << " \n"[i == FEATURE_NUM - 1];
+    }
+
+    feature_file.seekg(bk_p, std::ios::beg);
+    feature_file.clear();
+  }
+
+  void output_label_data(std::fstream &label_file, const std::string &filepath)
+  {
+    auto bk_p = label_file.tellg();
+
+    std::ofstream outfile(filepath, std::ios::out | std::ios::trunc);
+    if (outfile.fail()) {
+      std::cerr << "Cannot open file" << filepath << '\n';
+      std::cin.get();
+      return;
+    }
+
+    label_file.seekg(0, std::ios::beg);
+    int buf;
+    while (label_file.read(reinterpret_cast<char *>(&buf), sizeof(int)))
+      outfile << buf << '\n';
+
+    label_file.seekg(bk_p, std::ios::beg);
+    label_file.clear();
+  }
+
 }    // namespace File_handler

@@ -16,6 +16,8 @@
 #include <cmath>
 #include <Eigen/Eigen>
 
+constexpr int FEATURE_NUM = 10;
+
 /**
  * @brief Append a row to the matrix.
  *
@@ -65,7 +67,9 @@ std::tuple<double, double, double, double> cal_linearity(Eigen::MatrixXd Seg);
  * @param Seg The segment data matrix. It's an Sn*2 matrix, Sn is the number of segments.
  * @return Eigen::VectorXd
  */
-Eigen::VectorXd make_feature(const Eigen::MatrixXd &Seg);
+Eigen::ArrayXd make_feature(const Eigen::MatrixXd &Seg);
+
+Eigen::MatrixXd segment_to_feature(const std::vector<Eigen::MatrixXd> &section_seg_vec);
 
 /**
  * @brief Transform the section xy data to the feature matrix.

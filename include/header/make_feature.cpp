@@ -14,22 +14,6 @@
 #include <cmath>
 #include <Eigen/Eigen>
 
-constexpr int FEATURE_NUM = 10;
-
-/**
- * @brief Append a row to the matrix.
- *
- * @param A The target matrix wanna append a row.
- * @param B The vector would be appended.
- * @return Eigen::MatrixXd The result matrix after complete appending.
- */
-Eigen::MatrixXd AppendRow(const Eigen::MatrixXd &A, const Eigen::VectorXd &B)
-{
-  Eigen::MatrixXd D(A.rows() + 1, A.cols());
-  D << A, B.transpose();
-  return D;
-}
-
 /**
  * @brief Calculate the point of the segment.
  *
@@ -135,9 +119,9 @@ std::tuple<double, double, double, double> cal_linearity(Eigen::MatrixXd Seg)
  * @param Seg The segment data matrix. It's an Sn*2 matrix, Sn is the number of segments.
  * @return Eigen::VectorXd
  */
-Eigen::VectorXd make_feature(const Eigen::MatrixXd &Seg)
+Eigen::ArrayXd make_feature(const Eigen::MatrixXd &Seg)
 {
-  Eigen::VectorXd feature = Eigen::VectorXd::Zero(FEATURE_NUM);
+  Eigen::ArrayXd feature(FEATURE_NUM);
   feature(0) = cal_point(Seg);
   feature(1) = cal_std(Seg);
   feature(2) = cal_width(Seg);
@@ -156,6 +140,16 @@ Eigen::VectorXd make_feature(const Eigen::MatrixXd &Seg)
   return feature;
 }
 
+Eigen::MatrixXd segment_to_feature(const std::vector<Eigen::MatrixXd> &section_seg_vec)
+{
+  Eigen::MatrixXd feature_data(section_seg_vec.size(), FEATURE_NUM);
+  bool empty_flag = true;
+
+  for (int i{}; i < section_seg_vec.size(); ++i)
+    feature_data.row(i) = make_feature(section_seg_vec[i]);
+
+  return feature_data;
+}
 
 /**
  * @brief Transform the section xy data to the feature matrix.
@@ -165,22 +159,8 @@ Eigen::VectorXd make_feature(const Eigen::MatrixXd &Seg)
  */
 std::pair<Eigen::MatrixXd, std::vector<Eigen::MatrixXd>> section_to_feature(const Eigen::MatrixXd &xy_data)    // xy_data is 720*2
 {
-  Eigen::MatrixXd feature_data = Eigen::MatrixXd::Zero(1, FEATURE_NUM);
-  bool empty_flag = true;
-
-  std::vector<Eigen::MatrixXd> section_seg_vec = section_to_segment(xy_data);    // 那一秒切出來的所有 segment
-
-  for (const auto &Seg : section_seg_vec) {
-    Eigen::VectorXd single_feature = make_feature(Seg);
-
-    if (empty_flag) {
-      feature_data += single_feature.transpose();
-      empty_flag = false;
-    }
-    else {
-      feature_data = AppendRow(feature_data, single_feature);
-    }
-  }
+  std::vector<Eigen::MatrixXd> section_seg_vec = section_to_segment(xy_data);    // The all segments in the seconds.
+  Eigen::MatrixXd feature_data = segment_to_feature(section_seg_vec);
 
   return { feature_data, section_seg_vec };
 }

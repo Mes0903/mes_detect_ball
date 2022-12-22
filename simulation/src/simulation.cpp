@@ -2,10 +2,10 @@
 // This app uses implot and imgui, but does not output to any backend! It only serves as a proof that an app can be built, linked, and run.
 
 #include "imgui_header.h"
+#include "animate_info.h"
 #include "show_control_window.h"
 #include "show_label_window.h"
 #include "show_simulation_window.h"
-#include "frame_handler.h"
 
 #include "make_feature.h"
 #include "adaboost.h"
@@ -41,10 +41,7 @@
 Adaboost<logistic> A_box, A_ball;
 Normalizer normalizer_ball, normalizer_box;
 
-inline constexpr int ROW = 720;
-Eigen::MatrixXd xy_data(ROW, 2);
-
-int frame = 0, max_frame;
+static AnimationInfo A_INFO;
 
 static void glfw_error_callback(int error, const char *description)
 {
@@ -118,15 +115,17 @@ int main(int, char **)
 #else
   const std::string filepath = "/home/mes/mes_detect_ball";
 #endif
-
   File_handler::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A_ball, normalizer_ball);
   // File_handler::load_weight(filepath + "/include/weight_data/adaboost_box_weight.txt", A_box, normalizer_box);
 
-  transform_frame(filepath + "/include/dataset/ball_xy_data.txt", filepath + "/include/dataset/ball_xy_data_bin.txt");
+  const std::string xy_data_path = filepath + "/include/dataset/ball_xy_data.txt";
+  const std::string xy_bin_data_path = filepath + "/include/dataset/ball_xy_data_bin.txt";
+  const int max_frame = File_handler::transform_frame(xy_data_path, xy_bin_data_path);
 
-  std::ifstream infile(filepath + "/include/dataset/ball_xy_data_bin.txt", std::ios::binary);
-  if (infile.fail()) {
-    std::cout << "cant found " << filepath + "/include/dataset/ball_xy_data_bin.txt" << '\n';
+  static std::ifstream xy_bin_data_file(xy_bin_data_path, std::ios::in | std::ios::binary);
+  if (xy_bin_data_file.fail()) {
+    std::cerr << "cant found " << xy_bin_data_path << '\n';
+    std::cin.get();
     exit(1);
   }
 
@@ -140,10 +139,10 @@ int main(int, char **)
     ShowControlWindow(show_label_window, show_simulation_window);
 
     if (show_label_window)
-      ShowLabel(infile);
+      ShowLabel(xy_bin_data_file, filepath, max_frame);
 
     if (show_simulation_window)
-      ShowSimulation(infile);
+      ShowSimulation(xy_bin_data_file, max_frame);
 
     ImGui::Render();
     int display_w, display_h;

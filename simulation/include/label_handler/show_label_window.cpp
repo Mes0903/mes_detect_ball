@@ -1,6 +1,6 @@
 #include "imgui_header.h"
 #include "show_label_window.h"
-#include "frame_handler.h"
+#include "label_animate_info.h"
 
 #include "make_feature.h"
 #include "adaboost.h"
@@ -13,157 +13,233 @@
 #include <chrono>
 #include <thread>
 #include <vector>
-#include <unordered_set>
+#include <set>
 #include <algorithm>
+#include <fstream>
+#include <cstdio>
 
-extern Eigen::MatrixXd xy_data;
+static LabelAnimationInfo LI;
 
-static double Ball_X{}, Ball_Y{}, Box_X{}, Box_Y{};
-static int label_window_size = 750;
-extern int frame, max_frame;
-static int fps = 60;
-static float label_mouse_area = static_cast<float>(0.05);
+static ImVec4 color_arr[] = { ImVec4(192 / 255.0, 238 / 255.0, 228 / 255.0, 1),
+                              ImVec4(248 / 255.0, 249 / 255.0, 136 / 255.0, 1),
+                              ImVec4(255 / 255.0, 202 / 255.0, 200 / 255.0, 1),
+                              ImVec4(255 / 255.0, 158 / 255.0, 158 / 255.0, 1),
+                              ImVec4(250 / 255.0, 248 / 255.0, 241 / 255.0, 1),
+                              ImVec4(250 / 255.0, 234 / 255.0, 177 / 255.0, 1),
+                              ImVec4(229 / 255.0, 186 / 255.0, 115 / 255.0, 1),
+                              ImVec4(197 / 255.0, 137 / 255.0, 64 / 255.0, 1),
+                              ImVec4(204 / 255.0, 214 / 255.0, 166 / 255.0, 1) };
 
-static bool update_frame = false;
-static auto current_time = std::chrono::system_clock::now();
-static bool auto_play = true;
-
-void ShowLabelInformation()
+void ShowLabelInformation(const std::string &filepath, std::fstream &feature_file, std::fstream &label_file)
 {
   if (ImGui::TreeNodeEx("Label Information")) {
     float spacing = ImGui::GetStyle().ItemInnerSpacing.x;
-    ImGui::Text("Ball is at: [%f, %f]", Ball_X, Ball_Y);
-    ImGui::Text("Box is at: [%f, %f]", Box_X, Box_Y);
+    ImGui::Text("Ball is at: [%f, %f]", LI.Ball_X, LI.Ball_Y);
+    ImGui::Text("Box is at: [%f, %f]", LI.Box_X, LI.Box_Y);
 
     /*----------Label Window Size----------*/
+    ImGui::Text("Label Window Size Control:");
+    ImGui::SameLine();
     ImGui::PushButtonRepeat(true);
 
-    if (ImGui::ArrowButton("label_window_size_left", ImGuiDir_Left) && label_window_size > 100)
-      --label_window_size;
+    if (ImGui::ArrowButton("label_window_size_left", ImGuiDir_Left) && LI.window_size > 100)
+      --LI.window_size;
 
     ImGui::SameLine(0.0f, spacing);
-    if (ImGui::ArrowButton("label_window_size_right", ImGuiDir_Right) && label_window_size < 2000)
-      ++label_window_size;
+    if (ImGui::ArrowButton("label_window_size_right", ImGuiDir_Right) && LI.window_size < 2000)
+      ++LI.window_size;
 
     ImGui::PopButtonRepeat();
     ImGui::SameLine(0.0f, spacing);
-    ImGui::SliderInt("Label Window size", &label_window_size, 100, 2000, "%d");
+    ImGui::SliderInt("Label Window size", &LI.window_size, 100, 2000, "%d");
     ImGui::SameLine();
-    ImGui::Text(":%d", label_window_size);
-
-    /*----------Auto play and Replay----------*/
-    ImGui::Checkbox("Auto Play", &auto_play);
-    if (auto_play && update_frame && frame < max_frame) {
-      update_frame = true;
-      ++frame;
-    }
-
-    ImGui::SameLine();
-
-    static bool replay = true;
-    ImGui::Checkbox("Replay", &replay);
-    if (replay && update_frame && frame >= max_frame) {
-      update_frame = true;
-      frame = 0;
-    }
+    ImGui::Text(":%d", LI.window_size);
 
     /*----------Label Mouse Area Control----------*/
+    ImGui::Text("Mouse Area Control:");
+    ImGui::SameLine();
     ImGui::PushButtonRepeat(true);
 
-    if (ImGui::ArrowButton("label_mouse_area_left", ImGuiDir_Left) && !auto_play && label_mouse_area > 0) {
-      update_frame = true;
-      label_mouse_area -= static_cast<float>(0.01);
+    if (ImGui::ArrowButton("label_mouse_area_left", ImGuiDir_Left) && !LI.auto_play && LI.label_mouse_area > 0) {
+      LI.update_frame = true;
+      LI.label_mouse_area -= static_cast<float>(0.01);
     }
 
     ImGui::SameLine(0.0f, spacing);
-    if (ImGui::ArrowButton("label_mouse_area_right", ImGuiDir_Right) && !auto_play && label_mouse_area < 5) {
-      update_frame = true;
-      label_mouse_area += static_cast<float>(0.01);
+    if (ImGui::ArrowButton("label_mouse_area_right", ImGuiDir_Right) && !LI.auto_play && LI.label_mouse_area < 5) {
+      LI.update_frame = true;
+      LI.label_mouse_area += static_cast<float>(0.01);
     }
 
     ImGui::PopButtonRepeat();
     ImGui::SameLine(0.0f, spacing);
-    ImGui::SliderFloat("Label Mouse Area", &label_mouse_area, 0, 5, "%0.01f");
+    ImGui::SliderFloat("Label Mouse Area", &LI.label_mouse_area, 0, 5, "%0.01f");
 
     ImGui::SameLine();
-    ImGui::Text(":%f", label_mouse_area);
+    ImGui::Text(":%f", LI.label_mouse_area);
 
     /*----------Frame Control----------*/
-    ImGui::Text("Max Frame: %d", max_frame);
+    ImGui::Text("Max Frame: %d", LI.max_frame);
+    ImGui::Text("Writed Max Frame: %d", LI.writed_max_frame);
+
+    ImGui::Text("Frame Control:");
+    ImGui::SameLine();
+
     ImGui::PushButtonRepeat(true);
 
-    if (ImGui::ArrowButton("frame_left", ImGuiDir_Left) && !auto_play && frame > 0) {
-      update_frame = true;
-      --frame;
+    if ((ImGui::ArrowButton("frame_left", ImGuiDir_Left) || ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) && !LI.auto_play && LI.frame > 0) {
+      LI.update_frame = true;
+      --LI.frame;
     }
 
     ImGui::SameLine(0.0f, spacing);
-    if (ImGui::ArrowButton("frame_right", ImGuiDir_Right) && !auto_play && frame < max_frame) {
-      update_frame = true;
-      ++frame;
+    if ((ImGui::ArrowButton("frame_right", ImGuiDir_Right) || ImGui::IsKeyPressed(ImGuiKey_RightArrow)) && !LI.auto_play && LI.frame < LI.max_frame) {
+      LI.update_frame = true;
+      ++LI.frame;
     }
 
     ImGui::PopButtonRepeat();
     ImGui::SameLine(0.0f, spacing);
-    if (ImGui::SliderInt("Frame", &frame, 0, max_frame, "%d"))
-      update_frame = true;
+    if (ImGui::SliderInt("Frame", &LI.frame, 0, LI.max_frame, "%d"))
+      LI.update_frame = true;
 
     ImGui::SameLine();
-    ImGui::Text(":%d", frame);
+    ImGui::Text(":%d", LI.frame);
 
     /*----------FPS Control----------*/
+    ImGui::Text("FPS Control:");
+    ImGui::SameLine();
     ImGui::PushButtonRepeat(true);
 
-    if (ImGui::ArrowButton("fps_left", ImGuiDir_Left) && !auto_play && fps > 1)
-      --fps;
+    if (ImGui::ArrowButton("fps_left", ImGuiDir_Left) && LI.fps > 1)
+      --LI.fps;
 
     ImGui::SameLine(0.0f, spacing);
-    if (ImGui::ArrowButton("fps_right", ImGuiDir_Right) && !auto_play && fps < 200)
-      ++fps;
+    if (ImGui::ArrowButton("fps_right", ImGuiDir_Right) && LI.fps < 200)
+      ++LI.fps;
 
     ImGui::SameLine(0.0f, spacing);
-    ImGui::SliderInt("FPS", &fps, 1, 200, "%d");
+    ImGui::SliderInt("FPS", &LI.fps, 1, 200, "%d");
 
     ImGui::PopButtonRepeat();
     ImGui::SameLine();
-    ImGui::Text(":%d", fps);
+    ImGui::Text(":%d", LI.fps);
+
+    /*----------Auto play and Replay----------*/
+    ImGui::Checkbox("Auto Play", &LI.auto_play);
+    if (LI.auto_play && LI.update_frame && LI.frame < LI.max_frame) {
+      LI.update_frame = true;
+      ++LI.frame;
+    }
+
+    ImGui::SameLine();
+
+    ImGui::Checkbox("Replay", &LI.replay);
+    if (LI.replay && LI.update_frame && LI.frame >= LI.max_frame) {
+      LI.update_frame = true;
+      LI.frame = 0;
+    }
+
+    /*----------Save Label Control----------*/
+    ImGui::Checkbox("Enable Enter Key for Saving File", &LI.enable_enter_save);
+    if (ImGui::Button("Save Label") ||
+        ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl)) && ImGui::IsKeyDown(ImGuiKey_S)) ||
+        ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && LI.enable_enter_save)) {
+      //
+
+      if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - LI.current_save_time).count() > 100) {
+        LI.current_save_time = std::chrono::system_clock::now();
+        LI.save_label = true;
+        LI.current_save_frame = LI.frame;
+      }
+    }
+
+    if (LI.current_save_frame != -1) {
+      ImGui::SameLine();
+      ImGui::Text("Save Label data from Frame: %d", LI.current_save_frame);
+    }
+
+    /*----------Output txt file Control----------*/
+
+    if (ImGui::Button("Output File")) {
+      static const std::string feature_output_path = filepath + "/include/dataset/test_feature_data.txt";
+      static const std::string label_output_path = filepath + "/include/dataset/test_label_data.txt";
+
+      File_handler::output_feature_data(feature_file, feature_output_path);
+      File_handler::output_label_data(label_file, label_output_path);
+    }
+
+    /*----------------------------------------*/
 
     ImGui::TreePop();
   }
 }
 
-// struct point_hash {
-//   std::size_t operator()(const ImPlotPoint &point) const { return ((point.x + point.y) * (point.x + point.y + 1) / 2) + point.y; };
-// };
-// bool operator==(const ImPlotPoint &p1, const ImPlotPoint &p2) { return (p1.x == p2.x) && (p1.y == p2.y); };
-
-void ShowLabel(std::ifstream &infile)
+void ShowLabel(std::ifstream &infile, const std::string &filepath, const int max_frame)
 {
+  LI.max_frame = max_frame;
+
+  static const std::string feature_file_path = filepath + "/include/dataset/test_feature_bin_data.txt";
+  static const std::string label_file_path = filepath + "/include/dataset/test_label_bin_data.txt";
+
+  static std::fstream feature_file(feature_file_path, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+  if (feature_file.fail()) {
+    std::cerr << "cant found " << feature_file_path << '\n';
+    std::cin.get();
+    exit(1);
+  }
+
+  static std::fstream label_file(label_file_path, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+  if (label_file.fail()) {
+    std::cerr << "cant found " << label_file_path << '\n';
+    std::cin.get();
+    exit(1);
+  }
+
   ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2(500, 500), ImGuiCond_FirstUseEver);
   ImGui::Begin("Label Window");
 
-  if (auto_play) {
+  if (LI.auto_play) {
     if (auto now = std::chrono::system_clock::now();
-        std::chrono::duration_cast<std::chrono::milliseconds>(now - current_time).count() > (1000 / fps)) {
-      current_time = now;
-      update_frame = true;
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - LI.current_time).count() > (1000 / LI.fps)) {
+      LI.current_time = now;
+      LI.update_frame = true;
     }
     else {
-      update_frame = false;
+      LI.update_frame = false;
     }
   }
-  else {
-    update_frame = false;
+
+  ShowLabelInformation(filepath, feature_file, label_file);
+
+  static Eigen::MatrixXd feature_matrix;
+  static std::vector<Eigen::MatrixXd> segment_vec;
+  static std::vector<int> segment_label;
+
+  static std::vector<int> label_size_vec(LI.max_frame + 1);
+  static std::vector<int> label_index_vec(LI.max_frame + 1);
+  static std::vector<int> feature_size_vec(LI.max_frame + 1);
+  static std::vector<int> feature_index_vec(LI.max_frame + 1);
+
+  if (LI.update_frame) {
+    LI.update_frame = false;
+
+    File_handler::read_frame(infile, LI.xy_data, LI.frame);
+    std::tie(feature_matrix, segment_vec) = section_to_feature(LI.xy_data);
+
+    segment_label.clear();
+    segment_label.resize(segment_vec.size());
+    segment_label.shrink_to_fit();
+
+    if (label_size_vec[LI.frame] != 0) {
+      label_file.seekg(label_index_vec[LI.frame], std::ios::beg);
+      label_file.read(reinterpret_cast<char *>(segment_label.data()), label_size_vec[LI.frame]);
+    }
   }
 
-  ShowLabelInformation();
-
-  if (update_frame)
-    read_frame(infile);
-
   if (ImGui::TreeNodeEx("Label window")) {
-    if (ImPlot::BeginPlot("Label", ImVec2(static_cast<float>(label_window_size), static_cast<float>(label_window_size)))) {
+    if (ImPlot::BeginPlot("Label", ImVec2(static_cast<float>(LI.window_size), static_cast<float>(LI.window_size)))) {
       ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1);
       ImPlot::SetupAxes("x", "y");
       ImPlot::SetupAxisLimits(ImAxis_X1, -5.0, 5.0);
@@ -175,14 +251,9 @@ void ShowLabel(std::ifstream &infile)
       ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 0, ImVec4(1, 0, 0, 1), IMPLOT_AUTO, ImVec4(1, 0, 0, 1));
       ImPlot::PlotScatter("Ball Section", &order_using_xy, &order_using_xy, 1);
 
-      auto [feature_matrix, segment_vec] = section_to_feature(xy_data);    // segment_vec is std::vector<Eigen::MatrixXd>
+      for (int i = 0; i < segment_vec.size(); ++i) {
+        const Eigen::MatrixXd &segment = segment_vec[i];
 
-      // hash function get from https://stackoverflow.com/questions/682438/hash-function-providing-unique-uint-from-an-integer-coordinate-pair
-      auto point_hash = [](const ImPlotPoint &point) { return ((point.x + point.y) * (point.x + point.y + 1) / 2) + point.y; };
-      auto point_equal = [](const ImPlotPoint &p1, const ImPlotPoint &p2) { return (p1.x == p2.x) && (p1.y == p2.y); };
-      static std::unordered_set<ImPlotPoint, decltype(point_hash), decltype(point_equal)> label_data{ 0, point_hash, point_equal };
-
-      for (const Eigen::MatrixXd &segment : segment_vec) {
         Eigen::ArrayXd segment_x = segment.col(0).array();
         Eigen::ArrayXd segment_y = segment.col(1).array();
         double X_mean = segment_x.mean();
@@ -193,24 +264,121 @@ void ShowLabel(std::ifstream &infile)
           ImPlotPoint click_point = ImPlot::GetPlotMousePos();
 
           for (auto data_point : segment.rowwise()) {
-            if ((data_point(0) - label_mouse_area < click_point.x) && (click_point.x < data_point(0) + label_mouse_area) && (data_point(1) - label_mouse_area < click_point.y) && (click_point.y < data_point(1) + label_mouse_area)) {
-              if (label_data.find(ImPlotPoint(X_mean, Y_mean)) != label_data.end())
-                label_data.erase(ImPlotPoint(X_mean, Y_mean));
+            if ((data_point(0) - LI.label_mouse_area < click_point.x) && (click_point.x < data_point(0) + LI.label_mouse_area) && (data_point(1) - LI.label_mouse_area < click_point.y) && (click_point.y < data_point(1) + LI.label_mouse_area)) {
+              if (segment_label[i] == 1)
+                segment_label[i] = 0;
               else
-                label_data.insert(ImPlotPoint(X_mean, Y_mean));
+                segment_label[i] = 1;
 
               break;
             }
           }
         }
 
-        if (label_data.find(ImPlotPoint(X_mean, Y_mean)) != label_data.end()) {
+        if (segment_label[i] == 1) {
           ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 1, ImVec4(1, 0, 0, 1), IMPLOT_AUTO, ImVec4(1, 0, 0, 1));
           ImPlot::PlotScatter("Ball Section", segment_x.data(), segment_y.data(), segment_size);
         }
         else {
-          ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 1, ImVec4(0, 0.7f, 0, 1), IMPLOT_AUTO, ImVec4(0, 0.7f, 0, 1));
+          ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 1, color_arr[i % 9], IMPLOT_AUTO, color_arr[i % 9]);
           ImPlot::PlotScatter("Normal Point", segment_x.data(), segment_y.data(), segment_size);
+        }
+      }
+
+      if (LI.save_label) {
+        LI.save_label = false;
+        bool has_been_writed = (label_size_vec[LI.frame] == 0);
+
+        // set the size of the frame
+        feature_size_vec[LI.frame] = feature_matrix.size() * sizeof(double);
+        label_size_vec[LI.frame] = segment_vec.size() * sizeof(int);
+
+        int feature_index = 0, label_index = 0;
+        // calculate the index of this feature in the binary file
+        for (int sec_i = 0; sec_i < LI.frame; ++sec_i) {
+          feature_index += feature_size_vec[sec_i];    // if the frame didn't be writed, the size will be zero
+          label_index += label_size_vec[sec_i];    // calculate the index of the label in the binary file
+        }
+
+        feature_index_vec[LI.frame] = feature_index;    // It means the nth frame will been writed at `feature_index`
+        label_index_vec[LI.frame] = label_index;    // It means the nth label will been writed at `label_index`
+
+        // upload the max frame has been writed
+        if (LI.frame > LI.writed_max_frame)
+          LI.writed_max_frame = LI.frame;
+
+        // if it's insert, not append, then move all the data after this frame one chunk
+        if (LI.frame < LI.writed_max_frame && has_been_writed) {
+          static const std::string tmp_feature_filepath = filepath + "/include/dataset/tmp_feature_buffer_data";
+          static const std::string tmp_label_filepath = filepath + "/include/dataset/tmp_lable_buffer_data";
+
+          std::fstream file_feature_buf(tmp_feature_filepath, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+          if (file_feature_buf.fail()) {
+            std::cerr << "Cannot open file" << tmp_feature_filepath << '\n';
+            std::cin.get();
+            exit(1);
+          }
+
+          std::fstream file_label_buf(tmp_label_filepath, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+          if (file_label_buf.fail()) {
+            std::cerr << "Cannot open file" << tmp_label_filepath << '\n';
+            std::cin.get();
+            exit(1);
+          }
+
+          std::vector<double> section_feature_buf;
+          std::vector<int> section_label_buf;
+
+          // copy all the data after this frame and move it
+          feature_file.seekg(feature_index_vec[LI.frame], std::ios::beg);    // copy from the position will begin written
+          label_file.seekg(label_index_vec[LI.frame], std::ios::beg);
+
+          for (int sec_i = LI.frame + 1; sec_i <= LI.writed_max_frame; ++sec_i) {
+            if (feature_size_vec[sec_i] != 0) {
+              // copy the section(one frame) data
+              section_feature_buf.resize(feature_size_vec[sec_i] / sizeof(double));
+              section_feature_buf.shrink_to_fit();
+              feature_file.read(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // copy
+              file_feature_buf.write(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // and write
+
+              section_label_buf.resize(label_size_vec[sec_i] / sizeof(int));
+              section_label_buf.shrink_to_fit();
+              label_file.read(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // copy
+              file_label_buf.write(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // and write
+
+              feature_index_vec[sec_i] += feature_size_vec[LI.frame];    // add the offset of the data we will insert
+              label_index_vec[sec_i] += label_size_vec[LI.frame];    // add the offset of the data we will insert
+            }
+          }
+
+          file_feature_buf.flush();
+          file_label_buf.flush();
+          file_feature_buf.seekg(0, std::ios::beg);
+          file_label_buf.seekg(0, std::ios::beg);
+
+          File_handler::write_bin_feature_data(feature_file, feature_index, feature_matrix);
+          File_handler::write_bin_label_data(label_file, label_index, segment_label);
+
+          for (int sec_i = LI.frame + 1; sec_i <= LI.writed_max_frame; ++sec_i) {
+            if (feature_size_vec[sec_i] != 0) {
+              section_feature_buf.resize(feature_size_vec[sec_i] / sizeof(double));
+              section_feature_buf.shrink_to_fit();
+              file_feature_buf.read(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // copy
+              feature_file.write(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // and write
+
+              section_label_buf.resize(label_size_vec[sec_i] / sizeof(int));
+              section_label_buf.shrink_to_fit();
+              file_label_buf.read(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // copy
+              label_file.write(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // and write
+            }
+          }
+
+          feature_file.flush();
+          label_file.flush();
+        }
+        else {
+          File_handler::write_bin_feature_data(feature_file, feature_index, feature_matrix);
+          File_handler::write_bin_label_data(label_file, label_index, segment_label);
         }
       }
 

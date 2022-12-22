@@ -58,6 +58,12 @@ include_directories(
   ${MODEL_DIR}
   ${MODEL_DIR}/adaboost
   ${MODEL_DIR}/logistic
+  ${SIMULATION_THIRD_DIR}/imgui
+  ${SIMULATION_THIRD_DIR}/implot
+  ${SIMULATION_DIR}/include/
+  ${SIMULATION_DIR}/include/windows_handler
+  ${SIMULATION_DIR}/include/label_handler
+  ${SIMULATION_DIR}/include/simulation_handler
 )
 
  

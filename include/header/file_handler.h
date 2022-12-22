@@ -15,6 +15,7 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <vector>
 #include <sstream>
 
 
@@ -57,14 +58,19 @@ namespace Load_Matrix {
 }    // namespace Load_Matrix
 
 namespace File_handler {
-
   /**
-  * @brief Return the project directory path.
-  *
-  * @param filepath the executable file path, which is argv[0].
-  * @return std::string The project directory path
-  */
+   * @brief Return the project directory path.
+   *
+   * @param filepath the executable file path, which is argv[0].
+   * @return std::string The project directory path
+   */
   std::string get_filepath([[maybe_unused]] const char *filepath);
+  int transform_frame(const std::string &in_filepath, const std::string &out_filepath);
+  void read_frame(std::ifstream &infile, Eigen::MatrixXd &xy_data, const int frame);
+  void write_bin_feature_data(std::fstream &feature_file, const int feature_index, const Eigen::MatrixXd &feature_matrix);
+  void write_bin_label_data(std::fstream &label_file, const int label_index, const std::vector<int> &segment_label);
+  void output_feature_data(std::fstream &feature_file, const std::string &filepath);
+  void output_label_data(std::fstream &label_file, const std::string &filepath);
 
   namespace detail {
 #if __cplusplus >= 202002L
@@ -123,7 +129,8 @@ namespace File_handler {
      * @brief Check if the weight in class can be stored.
      */
     template <typename, typename = void>
-    struct can_store : std::false_type {};
+    struct can_store : std::false_type {
+    };
 
     template <typename T>
     struct can_store<T, std::void_t<decltype(&T::store_weight)> >
@@ -131,14 +138,16 @@ namespace File_handler {
                               decltype(&T::store_weight),
                               T &,
                               const std::string,
-                              std::ofstream &> {};
+                              std::ofstream &> {
+    };
 
 
     /**
      * @brief Check if the weight in class can be loaded.
      */
     template <typename, typename = void>
-    struct can_load : std::false_type {};
+    struct can_load : std::false_type {
+    };
 
     template <typename T>
     struct can_load<T, std::void_t<decltype(&T::load_weight)> >
@@ -146,7 +155,8 @@ namespace File_handler {
                               decltype(&T::load_weight),
                               T &,
                               const std::string,
-                              std::ifstream &> {};
+                              std::ifstream &> {
+    };
 
 
     /**
@@ -181,7 +191,7 @@ namespace File_handler {
 
     /**
      * @brief Calling the implementation of the class instance
-     * 
+     *
      * @param filepath The file which would be stored.
      * @param outfile The file stream which will be stored.
      * @param first The target class instance.
@@ -215,6 +225,7 @@ namespace File_handler {
     std::ifstream infile(filepath);
     if (infile.fail()) {
       std::cerr << "cant read " << filepath << '\n';
+      std::cin.get();
       exit(1);
     }
 
@@ -246,13 +257,15 @@ namespace File_handler {
 
     // compact F1 Score
     if (F1_Score <= old_F1_Score) {
-      std::cout << "This weight won't be saved since its F1 Score is not better than the original one\n";
+      std::cerr << "This weight won't be saved since its F1 Score is not better than the original one\n";
+      std::cin.get();
       return;
     }
 
     std::ofstream outfile(filepath);
     if (outfile.fail()) {
-      std::cout << "cant found " << filepath << '\n';
+      std::cerr << "cant found " << filepath << '\n';
+      std::cin.get();
       exit(1);
     }
 
@@ -272,7 +285,8 @@ namespace File_handler {
   {
     std::ifstream infile(filepath);
     if (infile.fail()) {
-      std::cout << "cant found " << filepath << '\n';
+      std::cerr << "cant found " << filepath << '\n';
+      std::cin.get();
       exit(1);
     }
 

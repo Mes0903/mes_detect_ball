@@ -3,6 +3,7 @@
 
 #include <fstream>
 
-void ShowSimulation(std::ifstream &infile);
+void ShowSimulationInformation();
+void ShowSimulation(std::ifstream &infile, const int max_frame);
 
 #endif
