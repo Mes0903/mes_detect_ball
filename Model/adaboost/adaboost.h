@@ -169,7 +169,7 @@ template <typename Model>
 Eigen::VectorXd Adaboost<Model>::predict(const Eigen::MatrixXd &data)
 {
   int R = data.rows();
-  Eigen::ArrayXd C(R);
+  Eigen::ArrayXd C = Eigen::ArrayXd::Zero(R);
   for (int m = 0; m < M; ++m)
     C += alpha(m) * (2 * vec[m].get_label(data).array() - 1);
 

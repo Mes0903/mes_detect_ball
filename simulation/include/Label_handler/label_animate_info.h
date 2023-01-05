@@ -12,6 +12,7 @@ struct LabelAnimationInfo : public AnimationInfo {
   bool auto_label = false;
   int current_save_frame = -1;
   int writed_max_frame = 0;
+  int break_frame = 0;
 };
 
 #endif

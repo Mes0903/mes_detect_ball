@@ -259,7 +259,7 @@ void ShowLabel(std::ifstream &infile, const std::string &filepath, const int max
       ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 0, ImVec4(1, 0, 0, 1), IMPLOT_AUTO, ImVec4(1, 0, 0, 1));
       ImPlot::PlotScatter("Ball Section", &order_using_xy, &order_using_xy, 1);
 
-      static ImPlotRect rect(0, 5, 0, 5);
+      static ImPlotRect rect(-1, 1, -1, 1);
       if (LI.show_rect)
         ImPlot::DragRect(0, &rect.X.Min, &rect.Y.Min, &rect.X.Max, &rect.Y.Max, ImVec4(1, 0, 1, 1), ImPlotDragToolFlags_None);
 
