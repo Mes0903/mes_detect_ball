@@ -21,13 +21,9 @@
 
 int main([[maybe_unused]] int argc, char **argv)
 {
-  //const std::string filepath = File_handler::get_filepath(argv[0]);
+  // const std::string filepath = File_handler::get_filepath(argv[0]);
 
-#if _WIN32
-  const std::string filepath = "D:/document/GitHub/mes_detect_ball";
-#else
-  const std::string filepath = "/home/mes/mes_detect_ball";
-#endif
+  const std::string filepath = File_handler::get_filepath();
 
   int case_num = 0;
   int sample = 0;
@@ -45,16 +41,16 @@ int main([[maybe_unused]] int argc, char **argv)
   if (case_num == 1) {
     /* fitting */
     puts("read training data...");
-    Eigen::MatrixXd train_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_train_x.txt", 50996, 10);    // file, row, col
+    Eigen::MatrixXd train_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_train_x.txt", 17000, FEATURE_NUM);    // file, row, col
 
     puts("reading training label...");
-    Eigen::VectorXd train_Y = Load_Matrix::readLabel(filepath + "/include/dataset/ball_train_y.txt", 50996);    // file, segment num(row)
+    Eigen::VectorXd train_Y = Load_Matrix::readLabel(filepath + "/include/dataset/ball_train_y.txt", 17000);    // file, segment num(row)
 
     puts("reading testing data...");
-    Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_test_x.txt", 21857, 10);
+    Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_test_x.txt", 19133, FEATURE_NUM);
 
     puts("reading testing label...");
-    Eigen::VectorXd test_Y = Load_Matrix::readLabel(filepath + "/include/dataset/ball_test_y.txt", 21857);
+    Eigen::VectorXd test_Y = Load_Matrix::readLabel(filepath + "/include/dataset/ball_test_y.txt", 19133);
 
     Normalizer normalizer;
     normalizer.fit(train_X);
@@ -81,10 +77,10 @@ int main([[maybe_unused]] int argc, char **argv)
   }
   else {
     puts("reading testing data...");
-    Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_test_x.txt", 21857, 10);
+    Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_test_x.txt", 19133, FEATURE_NUM);
 
     puts("reading testing label...");
-    Eigen::VectorXd test_Y = Load_Matrix::readLabel(filepath + "/include/dataset/ball_test_y.txt", 21857);
+    Eigen::VectorXd test_Y = Load_Matrix::readLabel(filepath + "/include/dataset/ball_test_y.txt", 19133);
 
     Normalizer normalizer;
     Adaboost<logistic> A;

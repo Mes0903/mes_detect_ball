@@ -11,6 +11,7 @@
 #include "make_feature.h"
 
 #include <Eigen/Eigen>
+#include <filesystem>
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -112,54 +113,18 @@ namespace File_handler {
   /**
    * @brief Return the project directory path.
    *
-   * @param filepath the executable file path, which is argv[0].
    * @return std::string The project directory path
    */
-  std::string get_filepath([[maybe_unused]] const char *filepath)
+  std::string get_filepath()
   {
-#if _WIN32
-    return "D:/document/GitHub/mes_detect_ball";
-#else
-    std::string buf = filepath;
-    std::string path;
+    namespace fs = std::filesystem;
 
-#if __cplusplus >= 202002L
-    for (const std::string token : buf | std::ranges::views::split('/')    // split the file path by '/'
-                                     | std::ranges::views::transform(    // transform the output type to the std::string
-                                         [](auto &&rng) { return std::string(&*rng.begin(), std::ranges::distance(rng)); })) {
-      if (token != "") {
-        path += "/" + token;
+    fs::path current = fs::current_path();
 
-        if (token == "catkin_ws") {
-          path += "/src/mes_detect_ball";
-          break;
-        }
-      }
-    }
-#else
-    std::string delimiter = "/";
+    while (current.filename().string() != "mes_detect_ball")
+      current = current.parent_path();
 
-    std::size_t pos = 0;
-    std::string token;
-    while ((pos = buf.find(delimiter)) != std::string::npos) {
-      token = buf.substr(0, pos);
-      if (token != "") {
-        path += '/' + token;
-
-        if (token == "catkin_ws") {
-          path += "/src/mes_detect_ball";
-          break;
-        }
-      }
-
-      buf.erase(0, pos + delimiter.length());
-    }
-
-#endif
-
-    return path;
-
-#endif    // __linux__
+    return current.string();
   }
 
   int transform_frame(const std::string &in_filepath, const std::string &out_filepath)

@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <fstream>
 #include <cstdio>
+#include <filesystem>
 
 static LabelAnimationInfo LI;
 
@@ -30,9 +31,32 @@ static ImVec4 color_arr[] = { ImVec4(192 / 255.0, 238 / 255.0, 228 / 255.0, 1),
                               ImVec4(197 / 255.0, 137 / 255.0, 64 / 255.0, 1),
                               ImVec4(204 / 255.0, 214 / 255.0, 166 / 255.0, 1) };
 
-void ShowLabelInformation(const std::string &filepath, std::fstream &feature_file, std::fstream &label_file)
+void ShowLabelInformation(std::fstream &feature_file, std::fstream &label_file)
 {
+  static const std::string filepath = File_handler::get_filepath();
+
+  /*----------------------------------------*/
+
+
   if (ImGui::TreeNodeEx("Label Information")) {
+    if (ImGui::Button("Clearing Data"))
+      ImGui::OpenPopup("Clean?");
+
+    if (ImGui::BeginPopupModal("Clean?", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::Text("Are you sure to clean up the data?\nAll of the data you wrote will be deleted.\n\n");
+      ImGui::Separator();
+
+      if (ImGui::Button("OK", ImVec2(200, 0))) {
+        LI.clean_data = true;
+        ImGui::CloseCurrentPopup();
+      }
+
+      ImGui::SetItemDefaultFocus();
+      ImGui::SameLine();
+      if (ImGui::Button("Cancel", ImVec2(200, 0))) { ImGui::CloseCurrentPopup(); }
+      ImGui::EndPopup();
+    }
+
     float spacing = ImGui::GetStyle().ItemInnerSpacing.x;
     ImGui::Text("Ball is at: [%f, %f]", LI.Ball_X, LI.Ball_Y);
     ImGui::Text("Box is at: [%f, %f]", LI.Box_X, LI.Box_Y);
@@ -81,6 +105,7 @@ void ShowLabelInformation(const std::string &filepath, std::fstream &feature_fil
     /*----------Frame Control----------*/
     ImGui::Text("Max Frame: %d", LI.max_frame);
     ImGui::Text("Writed Max Frame: %d", LI.writed_max_frame);
+    ImGui::Text("Writed Frame Numbers: %d", LI.writed_frame_numbers);
 
     ImGui::Text("Frame Control:");
     ImGui::SameLine();
@@ -174,7 +199,9 @@ void ShowLabelInformation(const std::string &filepath, std::fstream &feature_fil
     ImGui::Checkbox("Show Label Rect", &LI.show_rect);
 
     ImGui::SameLine();
+    ImGui::Checkbox("Show Nearest Segment", &LI.show_nearest);
 
+    ImGui::SameLine();
     ImGui::Checkbox("Auto Label", &LI.auto_label);
 
     /*----------------------------------------*/
@@ -183,32 +210,55 @@ void ShowLabelInformation(const std::string &filepath, std::fstream &feature_fil
   }
 }
 
-void ShowLabel(std::ifstream &infile, const std::string &filepath, const int max_frame)
+void ShowLabel()
 {
-  LI.max_frame = max_frame;
+  static const std::string filepath = File_handler::get_filepath();
+  static const std::string xy_data_path = filepath + "/include/dataset/ball_xy_data.txt";
+  static const std::string xy_bin_data_path = filepath + "/include/dataset/ball_xy_data_bin.txt";
+  {
+    static bool initialize = true;
+    if (initialize) {
+      LI.max_frame = File_handler::transform_frame(xy_data_path, xy_bin_data_path);
+      initialize = false;
+    }
+  }
+
+  static std::ifstream xy_bin_data_file(xy_bin_data_path, std::ios::in | std::ios::binary);
+  if (xy_bin_data_file.fail()) {
+    std::cerr << "cant open " << xy_bin_data_path << '\n';
+    std::cin.get();
+    exit(1);
+  }
+
+  namespace fs = std::filesystem;
 
   static const std::string feature_file_path = filepath + "/include/dataset/test_feature_bin_data.txt";
   static const std::string label_file_path = filepath + "/include/dataset/test_label_bin_data.txt";
+  if (!fs::exists(feature_file_path)) std::ofstream create_file(feature_file_path);    // just for creating file.
+  if (!fs::exists(label_file_path)) std::ofstream create_file(label_file_path);    // just for creating file.
 
-  static std::fstream feature_file(feature_file_path, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+  static std::fstream feature_file(feature_file_path, std::ios::in | std::ios::out | std::ios::binary);
   if (feature_file.fail()) {
-    std::cerr << "cant found " << feature_file_path << '\n';
+    std::cerr << "cant open " << feature_file_path << '\n';
     std::cin.get();
     exit(1);
   }
+  // feature_file.seekg(0, std::ios::beg);
 
-  static std::fstream label_file(label_file_path, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+  static std::fstream label_file(label_file_path, std::ios::in | std::ios::out | std::ios::binary);
   if (label_file.fail()) {
-    std::cerr << "cant found " << label_file_path << '\n';
+    std::cerr << "cant open " << label_file_path << '\n';
     std::cin.get();
     exit(1);
   }
+  // label_file.seekg(0, std::ios::beg);
 
   ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2(500, 500), ImGuiCond_FirstUseEver);
   ImGui::Begin("Label Window");
 
   if (LI.auto_play) {
+    // check the fps and determine if it should update frame
     if (auto now = std::chrono::system_clock::now();
         std::chrono::duration_cast<std::chrono::milliseconds>(now - LI.current_time).count() > (1000 / LI.fps)) {
       LI.current_time = now;
@@ -219,7 +269,7 @@ void ShowLabel(std::ifstream &infile, const std::string &filepath, const int max
     }
   }
 
-  ShowLabelInformation(filepath, feature_file, label_file);
+  ShowLabelInformation(feature_file, label_file);
 
   static Eigen::MatrixXd feature_matrix;
   static std::vector<Eigen::MatrixXd> segment_vec;
@@ -230,10 +280,36 @@ void ShowLabel(std::ifstream &infile, const std::string &filepath, const int max
   static std::vector<int> feature_size_vec(LI.max_frame + 1);
   static std::vector<int> feature_index_vec(LI.max_frame + 1);
 
+  if (LI.clean_data) {
+    const std::string feature_output_path = filepath + "/include/dataset/test_feature_data.txt";
+    const std::string label_output_path = filepath + "/include/dataset/test_label_data.txt";
+
+    namespace fs = std::filesystem;
+
+    if (fs::exists(feature_file_path)) {
+      feature_file.seekg(0, std::ios::beg);
+      feature_file.seekp(0, std::ios::beg);
+      fs::resize_file(feature_file_path, 0);
+      std::fill(feature_size_vec.begin(), feature_size_vec.end(), 0);
+      std::fill(feature_index_vec.begin(), feature_index_vec.end(), 0);
+    }
+    if (fs::exists(label_file_path)) {
+      label_file.seekg(0, std::ios::beg);
+      label_file.seekp(0, std::ios::beg);
+      fs::resize_file(label_file_path, 0);
+      std::fill(label_size_vec.begin(), label_size_vec.end(), 0);
+      std::fill(label_index_vec.begin(), label_index_vec.end(), 0);
+    }
+    if (fs::exists(feature_output_path)) fs::resize_file(feature_output_path, 0);
+    if (fs::exists(label_output_path)) fs::resize_file(label_output_path, 0);
+
+    LI.clean_data = false;
+  }
+
   if (LI.update_frame) {
     LI.update_frame = false;
 
-    File_handler::read_frame(infile, LI.xy_data, LI.frame);
+    File_handler::read_frame(xy_bin_data_file, LI.xy_data, LI.frame);
     std::tie(feature_matrix, segment_vec) = section_to_feature(LI.xy_data);
 
     segment_label.clear();
@@ -263,6 +339,10 @@ void ShowLabel(std::ifstream &infile, const std::string &filepath, const int max
       if (LI.show_rect)
         ImPlot::DragRect(0, &rect.X.Min, &rect.Y.Min, &rect.X.Max, &rect.Y.Max, ImVec4(1, 0, 1, 1), ImPlotDragToolFlags_None);
 
+      int nearest_index = -1;
+      double nearest_dis = -1;
+      double nearest_x = 0, nearest_y = 0;
+
       for (int i = 0; i < segment_vec.size(); ++i) {
         const Eigen::MatrixXd &segment = segment_vec[i];
 
@@ -286,6 +366,7 @@ void ShowLabel(std::ifstream &infile, const std::string &filepath, const int max
             }
           }
         }
+
         if (LI.show_rect && LI.auto_label) {
           for (auto data_point : segment.rowwise()) {
             if ((rect.X.Min < data_point(0) && data_point(0) < rect.X.Max) && (rect.Y.Min < data_point(1) && data_point(1) < rect.Y.Max)) {
@@ -293,6 +374,16 @@ void ShowLabel(std::ifstream &infile, const std::string &filepath, const int max
 
               break;
             }
+          }
+        }
+
+        if (LI.show_nearest) {
+          double point_dis = std::sqrt(std::pow(X_mean, 2) + std::pow(Y_mean, 2));
+          if (point_dis < nearest_dis || nearest_dis == -1) {
+            nearest_dis = point_dis;
+            nearest_index = i;
+            nearest_x = X_mean;
+            nearest_y = Y_mean;
           }
         }
 
@@ -306,9 +397,26 @@ void ShowLabel(std::ifstream &infile, const std::string &filepath, const int max
         }
       }
 
-      if (LI.save_label || (LI.show_rect && LI.auto_label)) {
+      if (LI.show_nearest) {
+        if (LI.auto_label) {
+          segment_label[nearest_index] = 1;
+          Eigen::ArrayXd segment_x = segment_vec[nearest_index].col(0).array();
+          Eigen::ArrayXd segment_y = segment_vec[nearest_index].col(1).array();
+          int segment_size = segment_x.size();
+          ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 1, ImVec4(1, 0, 0, 1), IMPLOT_AUTO, ImVec4(1, 0, 0, 1));
+          ImPlot::PlotScatter("Ball Section", segment_x.data(), segment_y.data(), segment_size);
+        }
+
+        ImPlot::SetNextLineStyle(ImVec4(1, 0, 0, 1));
+        ImPlot::PlotLine("nearest_line", &nearest_x, &nearest_y, 2, 0, 0, sizeof(ImPlotPoint));
+      }
+
+
+      if (bool has_been_writed = (label_size_vec[LI.frame] == 0);
+          has_been_writed &&
+          (LI.save_label || (LI.show_rect && LI.auto_label) || (LI.show_nearest && LI.auto_label))) {
         LI.save_label = false;
-        bool has_been_writed = (label_size_vec[LI.frame] == 0);
+        ++LI.writed_frame_numbers;
 
         // set the size of the frame
         feature_size_vec[LI.frame] = feature_matrix.size() * sizeof(double);

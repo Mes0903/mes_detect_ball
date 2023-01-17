@@ -64,7 +64,7 @@ namespace File_handler {
    * @param filepath the executable file path, which is argv[0].
    * @return std::string The project directory path
    */
-  std::string get_filepath([[maybe_unused]] const char *filepath);
+  std::string get_filepath();
   int transform_frame(const std::string &in_filepath, const std::string &out_filepath);
   void read_frame(std::ifstream &infile, Eigen::MatrixXd &xy_data, const int frame);
   void write_bin_feature_data(std::fstream &feature_file, const int feature_index, const Eigen::MatrixXd &feature_matrix);

@@ -4,6 +4,6 @@
 #include <fstream>
 
 void ShowSimulationInformation();
-void ShowSimulation(std::ifstream &infile, const int max_frame);
+void ShowSimulation();
 
 #endif

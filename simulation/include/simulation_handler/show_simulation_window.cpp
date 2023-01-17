@@ -13,8 +13,8 @@
 #include <chrono>
 #include <thread>
 
-extern Adaboost<logistic> A_box, A_ball;
-extern Normalizer normalizer_ball, normalizer_box;
+static Adaboost<logistic> A_box, A_ball;
+static Normalizer normalizer_ball, normalizer_box;
 
 static AnimationInfo SI;    // simulation animation info
 
@@ -107,9 +107,28 @@ void ShowSimulationInformation()
   }
 }
 
-void ShowSimulation(std::ifstream &infile, const int max_frame)
+void ShowSimulation()
 {
-  SI.max_frame = max_frame;
+  static const std::string filepath = File_handler::get_filepath();
+  File_handler::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A_ball, normalizer_ball);
+
+  static const std::string xy_data_path = filepath + "/include/dataset/ball_test_xy_data.txt";
+  static const std::string xy_bin_data_path = filepath + "/include/dataset/test_ball_xy_data_bin.txt";
+  {
+    static bool initialize = true;
+    if (initialize) {
+      SI.max_frame = File_handler::transform_frame(xy_data_path, xy_bin_data_path);
+      initialize = false;
+    }
+  }
+
+
+  static std::ifstream xy_bin_data_file(xy_bin_data_path, std::ios::in | std::ios::binary);
+  if (xy_bin_data_file.fail()) {
+    std::cerr << "cant open " << xy_bin_data_path << '\n';
+    std::cin.get();
+    exit(1);
+  }
 
   ImGui::SetNextWindowPos(ImVec2(550, 50), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2(500, 500), ImGuiCond_FirstUseEver);
@@ -134,7 +153,7 @@ void ShowSimulation(std::ifstream &infile, const int max_frame)
   if (SI.update_frame) {
     SI.update_frame = false;
 
-    File_handler::read_frame(infile, SI.xy_data, SI.frame);
+    File_handler::read_frame(xy_bin_data_file, SI.xy_data, SI.frame);
     std::tie(feature_matrix, segment_vec) = section_to_feature(SI.xy_data);
   }
 

@@ -9,9 +9,12 @@ struct LabelAnimationInfo : public AnimationInfo {
   bool enable_enter_save = false;
   bool output_txt = false;
   bool show_rect = false;
+  bool show_nearest = false;
   bool auto_label = false;
+  bool clean_data = false;
   int current_save_frame = -1;
   int writed_max_frame = 0;
+  int writed_frame_numbers = 0;
   int break_frame = 0;
 };
 

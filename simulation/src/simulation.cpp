@@ -89,10 +89,6 @@ int main(int, char **)
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImPlot::CreateContext();
-  ImGuiIO &io = ImGui::GetIO();
-  (void) io;
-  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
   // Setup Dear ImGui style
   ImGui::StyleColorsClassic();
@@ -110,25 +106,6 @@ int main(int, char **)
 
   /*-----------------------------------------------------------------------------------------------------*/
 
-#if _WIN32
-  const std::string filepath = "D:/document/GitHub/mes_detect_ball";
-#else
-  const std::string filepath = "/home/mes/mes_detect_ball";
-#endif
-  File_handler::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A_ball, normalizer_ball);
-  // File_handler::load_weight(filepath + "/include/weight_data/adaboost_box_weight.txt", A_box, normalizer_box);
-
-  const std::string xy_data_path = filepath + "/include/dataset/ball_xy_data.txt";
-  const std::string xy_bin_data_path = filepath + "/include/dataset/ball_xy_data_bin.txt";
-  const int max_frame = File_handler::transform_frame(xy_data_path, xy_bin_data_path);
-
-  static std::ifstream xy_bin_data_file(xy_bin_data_path, std::ios::in | std::ios::binary);
-  if (xy_bin_data_file.fail()) {
-    std::cerr << "cant found " << xy_bin_data_path << '\n';
-    std::cin.get();
-    exit(1);
-  }
-
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
 
@@ -139,10 +116,10 @@ int main(int, char **)
     ShowControlWindow(show_label_window, show_simulation_window);
 
     if (show_label_window)
-      ShowLabel(xy_bin_data_file, filepath, max_frame);
+      ShowLabel();
 
     if (show_simulation_window)
-      ShowSimulation(xy_bin_data_file, max_frame);
+      ShowSimulation();
 
     ImGui::Render();
     int display_w, display_h;
