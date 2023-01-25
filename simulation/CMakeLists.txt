@@ -5,33 +5,39 @@ project(DETECTION_SIMULATION)
 set(CMAKE_CXX_STANDARD 17)
 
 set(SIMULATION_DIR ${PROJECT_SOURCE_DIR})
-set(SIMULATION_THIRD_DIR ${SIMULATION_DIR}/3rdparty)
+
+find_package(OpenGL REQUIRED)
+
 include_directories(
+  ${OPENGL_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
   ${PROJECT_HEADER}
   ${MODEL_DIR}
   ${MODEL_DIR}/adaboost
   ${MODEL_DIR}/logistic
-  ${SIMULATION_THIRD_DIR}/imgui
-  ${SIMULATION_THIRD_DIR}/implot
+  ${THIRD_DIR}/imgui
+  ${THIRD_DIR}/implot
+  ${THIRD_DIR}/ImGuiFileDialog
   ${SIMULATION_DIR}/include/
   ${SIMULATION_DIR}/include/windows_handler
   ${SIMULATION_DIR}/include/label_handler
   ${SIMULATION_DIR}/include/simulation_handler
 )
 
-add_subdirectory(${SIMULATION_THIRD_DIR})
-
 add_executable(
   DETECTION_SIMULATION 
 
-  ${SIMULATION_DIR}/include/imgui_header.h
-  ${SIMULATION_DIR}/include/windows_handler/animate_info.h
+  ${SIMULATION_DIR}/include/windows_handler/Controller.h
+  ${SIMULATION_DIR}/include/windows_handler/Controller.cpp
   ${SIMULATION_DIR}/include/windows_handler/show_control_window.h
   ${SIMULATION_DIR}/include/windows_handler/show_control_window.cpp
+  ${SIMULATION_DIR}/include/label_handler/LabelController.h
+  ${SIMULATION_DIR}/include/label_handler/LabelController.cpp
   ${SIMULATION_DIR}/include/label_handler/show_label_window.h
   ${SIMULATION_DIR}/include/label_handler/show_label_window.cpp
+  ${SIMULATION_DIR}/include/simulation_handler/SimulationController.h
+  ${SIMULATION_DIR}/include/simulation_handler/SimulationController.cpp
   ${SIMULATION_DIR}/include/simulation_handler/show_simulation_window.h
   ${SIMULATION_DIR}/include/simulation_handler/show_simulation_window.cpp
 
@@ -41,40 +47,29 @@ add_executable(
   ${PROJECT_HEADER}/make_feature.cpp
   ${PROJECT_HEADER}/metric.h
   ${PROJECT_HEADER}/metric.cpp
-  ${PROJECT_HEADER}/segment.h
-  ${PROJECT_HEADER}/segment.cpp
 
-  ${SIMULATION_DIR}/src/simulation.cpp
+  ${SIMULATION_DIR}/src/tool.cpp
   ${MODEL_DIR}/normalize.h
   ${MODEL_DIR}/normalize.cpp
   ${MODEL_DIR}/adaboost/adaboost.h
   ${MODEL_DIR}/logistic/logistic.h
   ${MODEL_DIR}/logistic/logistic.cpp
+
+  $<$<BOOL:${WIN32}>: ${APP_ICON_RESOURCE_WINDOWS}>
 )
 
-if(WIN32)
-  target_link_libraries(
-    DETECTION_SIMULATION
-    IMGUI_LIB
-    IMPLOT_LIB
-    ${SIMULATION_THIRD_DIR}/windows/lib/glfw3.lib
-    ${SIMULATION_THIRD_DIR}/windows/lib/OpenGL32.Lib
-  )
-
-elseif(UNIX)
-  find_package(OpenGL REQUIRED)
-  if(OPENGL_FOUND)
-    message('OPENGL_FOUND-is-true')
-  else()
-    message('OPENGL_FOUND-is-false')
-  endif()
-
-  target_link_libraries(
-    DETECTION_SIMULATION
-    IMGUI_LIB
-    IMPLOT_LIB
-    glfw
-    ${OPENGL_LIBRARIES}
-  )
-
+if(OPENGL_FOUND)
+  message('OPENGL_FOUND-is-true')
+else()
+  message('OPENGL_FOUND-is-false')
 endif()
+
+target_link_libraries(
+  DETECTION_SIMULATION
+  IMGUI_LIB
+  IMPLOT_LIB
+  IMFD_LIB
+  $<$<BOOL:${WIN32}>: ${THIRD_DIR}/windows/lib/glfw3.lib>
+  $<$<BOOL:${UNIX}>: glfw>
+  ${OPENGL_LIBRARIES}
+)

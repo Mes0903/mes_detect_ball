@@ -12,8 +12,10 @@ endif()
 if(WIN32)
   set(EIGEN3_INCLUDE_DIRS D:/Eigen) # SET UR EIGEN Directory
   if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    find_package(OpenGL REQUIRED)
     MESSAGE("==================== USING MSVC TO COMILE ====================")
-    add_compile_options(/wd4819)
+    add_compile_options(/wd4819 /wd4244 /wd4267 /wd4305)
+    set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/icon/MesIcon.rc")
     set(CMAKE_CXX_FLAGS_DEBUG "/O2")
     set(CMAKE_CXX_FLAGS_RELEASE "/O2")
   else()
@@ -48,8 +50,9 @@ endif(WIN32)
 #endif(UNIX)
 
 # Project header
-set(PROJECT_HEADER ${PROJECT_SOURCE_DIR}/include/header)
+set(PROJECT_HEADER ${PROJECT_SOURCE_DIR}/include)
 set(MODEL_DIR ${PROJECT_SOURCE_DIR}/Model)
+set(THIRD_DIR ${PROJECT_SOURCE_DIR}/3rdparty)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
@@ -58,8 +61,8 @@ include_directories(
   ${MODEL_DIR}
   ${MODEL_DIR}/adaboost
   ${MODEL_DIR}/logistic
-  ${SIMULATION_THIRD_DIR}/imgui
-  ${SIMULATION_THIRD_DIR}/implot
+  ${THIRD_DIR}/imgui
+  ${THIRD_DIR}/implot
   ${SIMULATION_DIR}/include/
   ${SIMULATION_DIR}/include/windows_handler
   ${SIMULATION_DIR}/include/label_handler
@@ -76,14 +79,14 @@ add_executable(Training_Ball
   ${PROJECT_HEADER}/make_feature.cpp
   ${PROJECT_HEADER}/metric.h
   ${PROJECT_HEADER}/metric.cpp
-  ${PROJECT_HEADER}/segment.h
-  ${PROJECT_HEADER}/segment.cpp
 
   ${MODEL_DIR}/normalize.h
   ${MODEL_DIR}/normalize.cpp
   ${MODEL_DIR}/adaboost/adaboost.h
   ${MODEL_DIR}/logistic/logistic.h
   ${MODEL_DIR}/logistic/logistic.cpp
+
+  $<$<BOOL:${WIN32}>: ${APP_ICON_RESOURCE_WINDOWS}>
 )
 
 target_link_libraries(
@@ -101,14 +104,14 @@ add_executable(Training_Box
   ${PROJECT_HEADER}/make_feature.cpp
   ${PROJECT_HEADER}/metric.h
   ${PROJECT_HEADER}/metric.cpp
-  ${PROJECT_HEADER}/segment.h
-  ${PROJECT_HEADER}/segment.cpp
 
   ${MODEL_DIR}/normalize.h
   ${MODEL_DIR}/normalize.cpp
   ${MODEL_DIR}/adaboost/adaboost.h
   ${MODEL_DIR}/logistic/logistic.h
   ${MODEL_DIR}/logistic/logistic.cpp
+
+  $<$<BOOL:${WIN32}>: ${APP_ICON_RESOURCE_WINDOWS}>
 )
 
 target_link_libraries(
@@ -117,6 +120,7 @@ target_link_libraries(
   ${Eigen3_LIBRARIES}
 )
 
+add_subdirectory(${THIRD_DIR})
 add_subdirectory(${PROJECT_SOURCE_DIR}/simulation)
 
 # for ROS detection

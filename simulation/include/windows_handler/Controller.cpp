@@ -1,0 +1,118 @@
+/**
+ * @file Controller.cpp
+ * @author Mes (mes900903@gmail.com) (Discord: Mes#0903)
+ * @brief The base of window controller
+ * @version 0.1
+ * @date 2023-01-24
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
+
+#include "Controller.h"
+#include "metric.h"
+#include "file_handler.h"
+
+/**
+ * @brief Transform the raw data into binary data
+ */
+void AnimationController::transform_frame()
+{
+  std::ifstream infile(raw_data_path);
+  if (infile.fail()) {
+    std::cerr << "cant found " << raw_data_path << '\n';
+    std::cin.get();
+    exit(1);
+  }
+
+  std::ofstream outfile(raw_bin_path, std::ios::binary);
+  if (outfile.fail()) {
+    std::cerr << "cant found " << raw_bin_path << '\n';
+    std::cin.get();
+    exit(1);
+  }
+
+  std::string line;
+  std::stringstream ss;
+  double x, y;
+  while (std::getline(infile, line)) {
+    ++max_frame;
+
+    ss << line;
+    ss >> x >> y;
+
+    outfile.write(reinterpret_cast<char *>(&x), sizeof(double));
+    outfile.write(reinterpret_cast<char *>(&y), sizeof(double));
+
+    ss.str("");
+    ss.clear();
+  }
+
+  max_frame /= HZ;
+  --max_frame;
+
+  if (raw_bin_open)
+    raw_bin_file.close();
+  else
+    raw_bin_open = true;
+
+  raw_bin_file.open(raw_bin_path, std::ios::in | std::ios::binary);
+  if (raw_bin_file.fail()) {
+    std::cerr << "cant open " << raw_bin_path << '\n';
+    std::cin.get();
+    exit(1);
+  }
+}
+
+/**
+ * @brief read one frame in laser data (minibot is 720*2, you can changed the HZ in control window or manually changed it in the constructor)
+ *
+ */
+void AnimationController::read_frame()
+{
+  raw_bin_file.seekg(frame * sizeof(double) * 2 * HZ, std::ios::beg);
+
+  for (int i{}; i < HZ; ++i) {
+    raw_bin_file.read(reinterpret_cast<char *>(&xy_data(i, 0)), sizeof(double));
+    raw_bin_file.read(reinterpret_cast<char *>(&xy_data(i, 1)), sizeof(double));
+  }
+
+  if (!is_xydata)
+    metric::rtheta_to_xy(xy_data, HZ);
+}
+
+/**
+ * @brief Check if the GUI should auto play
+ */
+void AnimationController::check_auto_play()
+{
+  if (auto_play) {
+    // check the fps and determine if it should update frame
+    if (auto now = std::chrono::system_clock::now();
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - current_time).count() > (1000 / fps)) {
+      current_time = now;
+      update_frame = true;
+    }
+    else {
+      update_frame = false;
+    }
+  }
+}
+
+AnimationController::AnimationController()
+{
+  fps = 60;
+  HZ = 720;
+  frame = 0, max_frame = 0;
+  window_size = 750;
+
+  update_frame = true;
+  current_time = std::chrono::system_clock::now();
+
+  auto_play = false;
+  replay = false;
+
+  xy_data = Eigen::MatrixXd::Zero(HZ, 2);
+  raw_bin_open = false;
+  is_xydata = false;
+}

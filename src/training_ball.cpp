@@ -1,6 +1,6 @@
 /**
  * @file training_ball.cpp
- * @author Mes
+ * @author Mes (mes900903@gmail.com) (Discord: Mes#0903)
  * @brief Traning the Adaboost to classified if an object is an ball, then stored the weighting.
  *        Execute it by command `rosrun mes_detect_ball Training_Ball` if you use ROS to build it.
  * @version 0.1
@@ -10,7 +10,6 @@
 #include "adaboost.h"
 #include "logistic.h"
 #include "make_feature.h"
-#include "segment.h"
 #include "normalize.h"
 #include "file_handler.h"
 #include "metric.h"
@@ -21,9 +20,7 @@
 
 int main([[maybe_unused]] int argc, char **argv)
 {
-  // const std::string filepath = File_handler::get_filepath(argv[0]);
-
-  const std::string filepath = File_handler::get_filepath();
+  const std::string filepath = FileHandler::get_filepath();
 
   int case_num = 0;
   int sample = 0;
@@ -41,16 +38,16 @@ int main([[maybe_unused]] int argc, char **argv)
   if (case_num == 1) {
     /* fitting */
     puts("read training data...");
-    Eigen::MatrixXd train_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_train_x.txt", 17000, FEATURE_NUM);    // file, row, col
+    Eigen::MatrixXd train_X = LoadMatrix::readDataSet(filepath + "/include/dataset/ball_train_x.txt", 17000, FEATURE_NUM);    // file, row, col
 
     puts("reading training label...");
-    Eigen::VectorXd train_Y = Load_Matrix::readLabel(filepath + "/include/dataset/ball_train_y.txt", 17000);    // file, segment num(row)
+    Eigen::VectorXd train_Y = LoadMatrix::readLabel(filepath + "/include/dataset/ball_train_y.txt", 17000);    // file, segment num(row)
 
     puts("reading testing data...");
-    Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_test_x.txt", 19133, FEATURE_NUM);
+    Eigen::MatrixXd test_X = LoadMatrix::readDataSet(filepath + "/include/dataset/ball_test_x.txt", 19133, FEATURE_NUM);
 
     puts("reading testing label...");
-    Eigen::VectorXd test_Y = Load_Matrix::readLabel(filepath + "/include/dataset/ball_test_y.txt", 19133);
+    Eigen::VectorXd test_Y = LoadMatrix::readLabel(filepath + "/include/dataset/ball_test_y.txt", 19133);
 
     Normalizer normalizer;
     normalizer.fit(train_X);
@@ -72,21 +69,21 @@ int main([[maybe_unused]] int argc, char **argv)
       A.set_confusion_matrix(confusion_matrix);
       A.print_confusion_matrix();
 
-      File_handler::store_weight(confusion_matrix, filepath + "/include/weight_data/adaboost_ball_weight.txt", A, normalizer);
+      FileHandler::store_weight(confusion_matrix, filepath + "/include/weight_data/adaboost_ball_weight.txt", A, normalizer);
     }
   }
   else {
     puts("reading testing data...");
-    Eigen::MatrixXd test_X = Load_Matrix::readDataSet(filepath + "/include/dataset/ball_test_x.txt", 19133, FEATURE_NUM);
+    Eigen::MatrixXd test_X = LoadMatrix::readDataSet(filepath + "/include/dataset/ball_test_x.txt", 19133, FEATURE_NUM);
 
     puts("reading testing label...");
-    Eigen::VectorXd test_Y = Load_Matrix::readLabel(filepath + "/include/dataset/ball_test_y.txt", 19133);
+    Eigen::VectorXd test_Y = LoadMatrix::readLabel(filepath + "/include/dataset/ball_test_y.txt", 19133);
 
     Normalizer normalizer;
     Adaboost<logistic> A;
 
     puts("Load Weighting...");
-    File_handler::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A, normalizer);
+    FileHandler::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A, normalizer);
 
     puts("Transforming test data...");
     test_X = normalizer.transform(test_X);
