@@ -25,9 +25,9 @@ void AnimationController::transform_frame()
     exit(1);
   }
 
-  std::ofstream outfile(raw_bin_path, std::ios::binary);
+  std::ofstream outfile(raw_bin_path__, std::ios::binary);
   if (outfile.fail()) {
-    std::cerr << "cant found " << raw_bin_path << '\n';
+    std::cerr << "cant found " << raw_bin_path__ << '\n';
     std::cin.get();
     exit(1);
   }
@@ -51,14 +51,14 @@ void AnimationController::transform_frame()
   max_frame /= HZ;
   --max_frame;
 
-  if (raw_bin_open)
-    raw_bin_file.close();
+  if (raw_bin_open__)
+    raw_bin_file__.close();
   else
-    raw_bin_open = true;
+    raw_bin_open__ = true;
 
-  raw_bin_file.open(raw_bin_path, std::ios::in | std::ios::binary);
-  if (raw_bin_file.fail()) {
-    std::cerr << "cant open " << raw_bin_path << '\n';
+  raw_bin_file__.open(raw_bin_path__, std::ios::in | std::ios::binary);
+  if (raw_bin_file__.fail()) {
+    std::cerr << "cant open " << raw_bin_path__ << '\n';
     std::cin.get();
     exit(1);
   }
@@ -70,11 +70,11 @@ void AnimationController::transform_frame()
  */
 void AnimationController::read_frame()
 {
-  raw_bin_file.seekg(frame * sizeof(double) * 2 * HZ, std::ios::beg);
+  raw_bin_file__.seekg(frame * sizeof(double) * 2 * HZ, std::ios::beg);
 
   for (int i{}; i < HZ; ++i) {
-    raw_bin_file.read(reinterpret_cast<char *>(&xy_data(i, 0)), sizeof(double));
-    raw_bin_file.read(reinterpret_cast<char *>(&xy_data(i, 1)), sizeof(double));
+    raw_bin_file__.read(reinterpret_cast<char *>(&xy_data(i, 0)), sizeof(double));
+    raw_bin_file__.read(reinterpret_cast<char *>(&xy_data(i, 1)), sizeof(double));
   }
 
   if (!is_xydata)
@@ -89,8 +89,8 @@ void AnimationController::check_auto_play()
   if (auto_play) {
     // check the fps and determine if it should update frame
     if (auto now = std::chrono::system_clock::now();
-        std::chrono::duration_cast<std::chrono::milliseconds>(now - current_time).count() > (1000 / fps)) {
-      current_time = now;
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - current_time__).count() > (1000 / fps)) {
+      current_time__ = now;
       update_frame = true;
     }
     else {
@@ -107,12 +107,12 @@ AnimationController::AnimationController()
   window_size = 750;
 
   update_frame = true;
-  current_time = std::chrono::system_clock::now();
+  current_time__ = std::chrono::system_clock::now();
 
   auto_play = false;
   replay = false;
 
   xy_data = Eigen::MatrixXd::Zero(HZ, 2);
-  raw_bin_open = false;
+  raw_bin_open__ = false;
   is_xydata = false;
 }

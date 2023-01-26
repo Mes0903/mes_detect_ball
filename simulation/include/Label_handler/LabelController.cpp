@@ -26,10 +26,10 @@
  */
 void LabelController::write_bin_feature_data__(const int feature_index, const Eigen::MatrixXd &feature_matrix)
 {
-  feature_bin_file.seekp(feature_index, std::ios::beg);
+  feature_bin_file__.seekp(feature_index, std::ios::beg);
   for (const auto &row : feature_matrix.rowwise()) {
     for (const double feature : row)
-      feature_bin_file.write(reinterpret_cast<const char *>(&feature), sizeof(double));
+      feature_bin_file__.write(reinterpret_cast<const char *>(&feature), sizeof(double));
   }
 }
 
@@ -40,8 +40,8 @@ void LabelController::write_bin_feature_data__(const int feature_index, const Ei
  */
 void LabelController::write_bin_feature_num_data__(const int nums)
 {
-  feature_num_bin_file.seekp(frame * sizeof(double), std::ios::beg);
-  feature_num_bin_file.write(reinterpret_cast<const char *>(&nums), sizeof(double));
+  feature_num_bin_file__.seekp(frame * sizeof(double), std::ios::beg);
+  feature_num_bin_file__.write(reinterpret_cast<const char *>(&nums), sizeof(double));
 }
 
 /**
@@ -52,9 +52,9 @@ void LabelController::write_bin_feature_num_data__(const int nums)
  */
 void LabelController::write_bin_label_data__(const int label_index, const std::vector<int> &segment_label)
 {
-  label_bin_file.seekp(label_index, std::ios::beg);
+  label_bin_file__.seekp(label_index, std::ios::beg);
   for (const int label : segment_label)
-    label_bin_file.write(reinterpret_cast<const char *>(&label), sizeof(int));
+    label_bin_file__.write(reinterpret_cast<const char *>(&label), sizeof(int));
 }
 
 /**
@@ -64,8 +64,8 @@ void LabelController::write_bin_label_data__(const int label_index, const std::v
  */
 void LabelController::write_bin_label_num_data__(const int nums)
 {
-  label_num_bin_file.seekp(frame * sizeof(int), std::ios::beg);
-  label_num_bin_file.write(reinterpret_cast<const char *>(&nums), sizeof(int));
+  label_num_bin_file__.seekp(frame * sizeof(int), std::ios::beg);
+  label_num_bin_file__.write(reinterpret_cast<const char *>(&nums), sizeof(int));
 }
 
 /**
@@ -73,7 +73,7 @@ void LabelController::write_bin_label_num_data__(const int nums)
  */
 void LabelController::output_feature_data()
 {
-  auto bk_p = feature_bin_file.tellg();    // record the pointer position.
+  auto bk_p = feature_bin_file__.tellg();    // record the pointer position.
 
   // open the file would be written
   std::ofstream feature_outfile(feature_output_path, std::ios::out | std::ios::trunc);
@@ -84,18 +84,18 @@ void LabelController::output_feature_data()
   }
 
   // reset the pointer of binary file to the beginning.
-  feature_bin_file.seekg(0, std::ios::beg);
+  feature_bin_file__.seekg(0, std::ios::beg);
   double buf[FEATURE_NUM];    // one line of feature.
   // read and write the feature line by line.
-  while (feature_bin_file.read(reinterpret_cast<char *>(buf), FEATURE_NUM * sizeof(double))) {
+  while (feature_bin_file__.read(reinterpret_cast<char *>(buf), FEATURE_NUM * sizeof(double))) {
     for (int i{}; i < FEATURE_NUM; ++i)
       feature_outfile << buf[i] << " \n"[i == FEATURE_NUM - 1];
   }
 
   // set the pointer to the original place
-  feature_bin_file.seekg(bk_p, std::ios::beg);
+  feature_bin_file__.seekg(bk_p, std::ios::beg);
   // clear the file flag
-  feature_bin_file.clear();
+  feature_bin_file__.clear();
 }
 
 /**
@@ -103,7 +103,7 @@ void LabelController::output_feature_data()
  */
 void LabelController::output_label_data()
 {
-  auto bk_p = label_bin_file.tellg();    // record the pointer position.
+  auto bk_p = label_bin_file__.tellg();    // record the pointer position.
 
   // open the file would be written
   std::ofstream label_outfile(label_output_path, std::ios::out | std::ios::trunc);
@@ -114,16 +114,16 @@ void LabelController::output_label_data()
   }
 
   // reset the pointer of binary file to the beginning.
-  label_bin_file.seekg(0, std::ios::beg);
+  label_bin_file__.seekg(0, std::ios::beg);
   int buf;    // the buffer of label
   // read and write all label
-  while (label_bin_file.read(reinterpret_cast<char *>(&buf), sizeof(int)))
+  while (label_bin_file__.read(reinterpret_cast<char *>(&buf), sizeof(int)))
     label_outfile << buf << '\n';
 
   // set the pointer to the original place
-  label_bin_file.seekg(bk_p, std::ios::beg);
+  label_bin_file__.seekg(bk_p, std::ios::beg);
   // clear the file flag
-  label_bin_file.clear();
+  label_bin_file__.clear();
 }
 
 /**
@@ -134,28 +134,28 @@ void LabelController::check_clean_data()
   // clean data
   if (clean_data) {
     // clean feature binary file and feature vector
-    feature_bin_file.seekg(0, std::ios::beg);
-    feature_bin_file.seekp(0, std::ios::beg);
-    std::filesystem::resize_file(feature_bin_path, 0);
+    feature_bin_file__.seekg(0, std::ios::beg);
+    feature_bin_file__.seekp(0, std::ios::beg);
+    std::filesystem::resize_file(feature_bin_path__, 0);
     std::fill(feature_size_vec.begin(), feature_size_vec.end(), 0);
     std::fill(feature_index_vec.begin(), feature_index_vec.end(), 0);
 
     // clean label binary file and label vector
-    label_bin_file.seekg(0, std::ios::beg);
-    label_bin_file.seekp(0, std::ios::beg);
-    std::filesystem::resize_file(label_bin_path, 0);
+    label_bin_file__.seekg(0, std::ios::beg);
+    label_bin_file__.seekp(0, std::ios::beg);
+    std::filesystem::resize_file(label_bin_path__, 0);
     std::fill(label_size_vec.begin(), label_size_vec.end(), 0);
     std::fill(label_index_vec.begin(), label_index_vec.end(), 0);
 
     // clean label number binary file
-    label_num_bin_file.seekg(0, std::ios::beg);
-    label_num_bin_file.seekp(0, std::ios::beg);
-    std::filesystem::resize_file(label_num_bin_path, 0);
+    label_num_bin_file__.seekg(0, std::ios::beg);
+    label_num_bin_file__.seekp(0, std::ios::beg);
+    std::filesystem::resize_file(label_num_bin_path__, 0);
 
     // clean feature number binary file
-    feature_num_bin_file.seekg(0, std::ios::beg);
-    feature_num_bin_file.seekp(0, std::ios::beg);
-    std::filesystem::resize_file(feature_num_bin_path, 0);
+    feature_num_bin_file__.seekg(0, std::ios::beg);
+    feature_num_bin_file__.seekp(0, std::ios::beg);
+    std::filesystem::resize_file(feature_num_bin_path__, 0);
 
     // clean the output file if it exist
     if (std::filesystem::exists(feature_output_path)) std::filesystem::resize_file(feature_output_path, 0);
@@ -227,8 +227,8 @@ void LabelController::check_update_frame()
 
     // if it had been labeled, update the information vector.
     if (label_size_vec[frame] != 0) {
-      label_bin_file.seekg(label_index_vec[frame], std::ios::beg);
-      label_bin_file.read(reinterpret_cast<char *>(segment_label.data()), label_size_vec[frame]);
+      label_bin_file__.seekg(label_index_vec[frame], std::ios::beg);
+      label_bin_file__.read(reinterpret_cast<char *>(segment_label.data()), label_size_vec[frame]);
     }
   }
 }
@@ -292,20 +292,20 @@ void LabelController::check_save_data()
       std::vector<int> section_label_buf;
 
       // copy all the data after this frame and move it
-      feature_bin_file.seekg(feature_index_vec[frame], std::ios::beg);    // copy from the position will begin written
-      label_bin_file.seekg(label_index_vec[frame], std::ios::beg);
+      feature_bin_file__.seekg(feature_index_vec[frame], std::ios::beg);    // copy from the position will begin written
+      label_bin_file__.seekg(label_index_vec[frame], std::ios::beg);
 
       for (int sec_i = frame + 1; sec_i <= writed_max_frame; ++sec_i) {
         if (feature_size_vec[sec_i] != 0) {
           // copy the section(one frame) data
           section_feature_buf.resize(feature_size_vec[sec_i] / sizeof(double));
           section_feature_buf.shrink_to_fit();
-          feature_bin_file.read(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // copy
+          feature_bin_file__.read(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // copy
           file_feature_buf.write(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // and write
 
           section_label_buf.resize(label_size_vec[sec_i] / sizeof(int));
           section_label_buf.shrink_to_fit();
-          label_bin_file.read(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // copy
+          label_bin_file__.read(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // copy
           file_label_buf.write(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // and write
 
           feature_index_vec[sec_i] += feature_size_vec[frame];    // add the offset of the data we will insert
@@ -326,17 +326,17 @@ void LabelController::check_save_data()
           section_feature_buf.resize(feature_size_vec[sec_i] / sizeof(double));
           section_feature_buf.shrink_to_fit();
           file_feature_buf.read(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // copy
-          feature_bin_file.write(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // and write
+          feature_bin_file__.write(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // and write
 
           section_label_buf.resize(label_size_vec[sec_i] / sizeof(int));
           section_label_buf.shrink_to_fit();
           file_label_buf.read(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // copy
-          label_bin_file.write(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // and write
+          label_bin_file__.write(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // and write
         }
       }
 
-      feature_bin_file.flush();
-      label_bin_file.flush();
+      feature_bin_file__.flush();
+      label_bin_file__.flush();
     }
     else {
       // directly append the data
@@ -368,46 +368,46 @@ LabelController::LabelController() : AnimationController()
   label_mouse_area = static_cast<float>(0.05);
 
   raw_data_path = FileHandler::get_filepath() + "\\dataset\\raw_data\\ball_laser.dat";
-  raw_bin_path = FileHandler::get_filepath() + "\\dataset\\binary_data\\label_raw_bin.txt";
+  raw_bin_path__ = FileHandler::get_filepath() + "\\dataset\\binary_data\\label_using_raw_data_bin.txt";
 
   feature_output_path = FileHandler::get_filepath() + "\\dataset\\default_data\\default_feature_data.txt";
   label_output_path = FileHandler::get_filepath() + "\\dataset\\default_data\\default_label_data.txt";
 
-  feature_bin_path = FileHandler::get_filepath() + "\\dataset\\binary_data\\default_feature_bin.txt";
-  feature_num_bin_path = FileHandler::get_filepath() + "\\dataset\\binary_data\\feature_num_bin.txt";
+  feature_bin_path__ = FileHandler::get_filepath() + "\\dataset\\binary_data\\feature_bin.txt";
+  feature_num_bin_path__ = FileHandler::get_filepath() + "\\dataset\\binary_data\\feature_num_bin.txt";
 
-  label_bin_path = FileHandler::get_filepath() + "\\dataset\\binary_data\\default_label_bin.txt";
-  label_num_bin_path = FileHandler::get_filepath() + "\\dataset\\binary_data\\label_num_bin.txt";
+  label_bin_path__ = FileHandler::get_filepath() + "\\dataset\\binary_data\\label_bin.txt";
+  label_num_bin_path__ = FileHandler::get_filepath() + "\\dataset\\binary_data\\label_num_bin.txt";
 
-  if (!std::filesystem::exists(feature_bin_path)) std::ofstream create_file(feature_bin_path);    // just for creating file.
-  if (!std::filesystem::exists(feature_num_bin_path)) std::ofstream create_file(feature_num_bin_path);    // just for creating file.
-  if (!std::filesystem::exists(label_bin_path)) std::ofstream create_file(label_bin_path);    // just for creating file.
-  if (!std::filesystem::exists(label_num_bin_path)) std::ofstream create_file(label_num_bin_path);    // just for creating file.
+  if (!std::filesystem::exists(feature_bin_path__)) std::ofstream create_file(feature_bin_path__);    // just for creating file.
+  if (!std::filesystem::exists(feature_num_bin_path__)) std::ofstream create_file(feature_num_bin_path__);    // just for creating file.
+  if (!std::filesystem::exists(label_bin_path__)) std::ofstream create_file(label_bin_path__);    // just for creating file.
+  if (!std::filesystem::exists(label_num_bin_path__)) std::ofstream create_file(label_num_bin_path__);    // just for creating file.
 
-  feature_bin_file.open(feature_bin_path, std::ios::in | std::ios::out | std::ios::binary);
-  if (feature_bin_file.fail()) {
-    std::cerr << "cant open " << feature_bin_path << '\n';
+  feature_bin_file__.open(feature_bin_path__, std::ios::in | std::ios::out | std::ios::binary);
+  if (feature_bin_file__.fail()) {
+    std::cerr << "cant open " << feature_bin_path__ << '\n';
     std::cin.get();
     exit(1);
   }
 
-  feature_num_bin_file.open(feature_num_bin_path, std::ios::in | std::ios::out | std::ios::binary);
-  if (feature_num_bin_file.fail()) {
-    std::cerr << "cant open " << feature_num_bin_path << '\n';
+  feature_num_bin_file__.open(feature_num_bin_path__, std::ios::in | std::ios::out | std::ios::binary);
+  if (feature_num_bin_file__.fail()) {
+    std::cerr << "cant open " << feature_num_bin_path__ << '\n';
     std::cin.get();
     exit(1);
   }
 
-  label_bin_file.open(label_bin_path, std::ios::in | std::ios::out | std::ios::binary);
-  if (label_bin_file.fail()) {
-    std::cerr << "cant open " << label_bin_path << '\n';
+  label_bin_file__.open(label_bin_path__, std::ios::in | std::ios::out | std::ios::binary);
+  if (label_bin_file__.fail()) {
+    std::cerr << "cant open " << label_bin_path__ << '\n';
     std::cin.get();
     exit(1);
   }
 
-  label_num_bin_file.open(label_num_bin_path, std::ios::in | std::ios::out | std::ios::binary);
-  if (label_num_bin_file.fail()) {
-    std::cerr << "cant open " << label_num_bin_path << '\n';
+  label_num_bin_file__.open(label_num_bin_path__, std::ios::in | std::ios::out | std::ios::binary);
+  if (label_num_bin_file__.fail()) {
+    std::cerr << "cant open " << label_num_bin_path__ << '\n';
     std::cin.get();
     exit(1);
   }
@@ -418,21 +418,21 @@ LabelController::LabelController() : AnimationController()
   feature_size_vec.resize(max_frame + 1);
   feature_index_vec.resize(max_frame + 1);
 
-  if (std::filesystem::file_size(label_num_bin_path) == 0) {
+  if (std::filesystem::file_size(label_num_bin_path__) == 0) {
     const int tmp_n = 0;
     const double tmp_d = 0.0;
 
     for (int i = 0; i < max_frame + 1; ++i) {
-      label_num_bin_file.write(reinterpret_cast<const char *>(&tmp_n), sizeof(int));
-      feature_num_bin_file.write(reinterpret_cast<const char *>(&tmp_d), sizeof(double));
+      label_num_bin_file__.write(reinterpret_cast<const char *>(&tmp_n), sizeof(int));
+      feature_num_bin_file__.write(reinterpret_cast<const char *>(&tmp_d), sizeof(double));
     }
 
-    label_num_bin_file.seekp(0, std::ios::beg);
+    label_num_bin_file__.seekp(0, std::ios::beg);
   }
   else {
     for (int i = 0; i < max_frame + 1; ++i) {
-      label_num_bin_file.read(reinterpret_cast<char *>(&label_size_vec[i]), sizeof(int));
-      feature_num_bin_file.read(reinterpret_cast<char *>(&feature_size_vec[i]), sizeof(double));
+      label_num_bin_file__.read(reinterpret_cast<char *>(&label_size_vec[i]), sizeof(int));
+      feature_num_bin_file__.read(reinterpret_cast<char *>(&feature_size_vec[i]), sizeof(double));
 
       for (int j = 0; j < i; ++j) {
         label_index_vec[i] += label_size_vec[j];

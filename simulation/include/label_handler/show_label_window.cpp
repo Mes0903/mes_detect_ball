@@ -133,44 +133,6 @@ void ShowLabelInformation()
       ImGuiFileDialog::Instance()->Close();
     }
 
-    /*----------Load feature binary output data----------*/
-    if (ImGui::Button("Load feature binary output data"))
-      ImGuiFileDialog::Instance()->OpenDialog("", "Choose the feature binary data you wanna write to", ".*", FileHandler::get_filepath() + "\\");
-
-    ImGui::SameLine();
-    ImGui::Text("path: %s", LC.feature_bin_path.c_str());
-
-    // display
-    if (ImGuiFileDialog::Instance()->Display("", ImGuiWindowFlags_NoCollapse, ImVec2(600, 500))) {
-      // action if OK
-      if (ImGuiFileDialog::Instance()->IsOk()) {
-        std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-        std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-        LC.feature_bin_path = filePathName;
-      }
-
-      ImGuiFileDialog::Instance()->Close();
-    }
-
-    /*----------Load label binary output data----------*/
-    if (ImGui::Button("Load label binary output data"))
-      ImGuiFileDialog::Instance()->OpenDialog("", "Choose the label binary data you wanna write to", ".*", FileHandler::get_filepath() + "\\");
-
-    ImGui::SameLine();
-    ImGui::Text("path: %s", LC.label_bin_path.c_str());
-
-    // display
-    if (ImGuiFileDialog::Instance()->Display("", ImGuiWindowFlags_NoCollapse, ImVec2(600, 500))) {
-      // action if OK
-      if (ImGuiFileDialog::Instance()->IsOk()) {
-        std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-        std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-        LC.label_bin_path = filePathName;
-      }
-
-      ImGuiFileDialog::Instance()->Close();
-    }
-
     /*----------Robot HZ----------*/
     ImVec2 current_windows_size = ImGui::GetWindowSize();
     static int current_HZ = LC.HZ;

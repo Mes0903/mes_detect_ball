@@ -31,7 +31,7 @@ SimulationController::SimulationController()
   Target_X = 0.0, Target_Y = 0.0;
 
   raw_data_path = FileHandler::get_filepath() + "\\dataset\\raw_data\\ball_laser.dat";
-  raw_bin_path = FileHandler::get_filepath() + "\\dataset\\binary_data\\default_raw_bin.txt";
+  raw_bin_path__ = FileHandler::get_filepath() + "\\dataset\\binary_data\\simulation_using_raw_data_bin.txt";
 
   weight_data_path = FileHandler::get_filepath() + "\\dataset\\weight_data\\adaboost_ball_weight.txt";
 

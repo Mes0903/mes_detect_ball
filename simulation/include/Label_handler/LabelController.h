@@ -44,33 +44,35 @@ public:
   bool clean_data;
   bool load_data;
 
-  int current_save_frame;
   int writed_max_frame;
   int writed_frame_numbers;
-  std::chrono::system_clock::time_point current_save_time;
 
   float label_mouse_area;
 
+  int current_save_frame;
+  std::chrono::system_clock::time_point current_save_time;
+
   std::string feature_output_path;
   std::string label_output_path;
-
-  std::string feature_bin_path;
-  std::string feature_num_bin_path;
-  std::string label_bin_path;
-  std::string label_num_bin_path;
   std::string tmp_feature_filepath;
   std::string tmp_label_filepath;
-
-  std::fstream feature_bin_file;
-  std::fstream feature_num_bin_file;
-  std::fstream label_bin_file;
-  std::fstream label_num_bin_file;
 
   std::vector<int> segment_label;
   std::vector<int> label_size_vec;
   std::vector<int> label_index_vec;
   std::vector<int> feature_size_vec;
   std::vector<int> feature_index_vec;
+
+private:
+  std::string feature_bin_path__;
+  std::string feature_num_bin_path__;
+  std::string label_bin_path__;
+  std::string label_num_bin_path__;
+
+  std::fstream feature_bin_file__;
+  std::fstream feature_num_bin_file__;
+  std::fstream label_bin_file__;
+  std::fstream label_num_bin_file__;
 };
 
 #endif

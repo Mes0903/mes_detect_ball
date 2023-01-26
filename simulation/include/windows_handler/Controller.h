@@ -35,21 +35,23 @@ public:
   int window_size;
 
   bool update_frame;
-  std::chrono::system_clock::time_point current_time;
 
   bool auto_play;
   bool replay;
 
+  Eigen::MatrixXd xy_data;
   Eigen::MatrixXd feature_matrix;
   std::vector<Eigen::MatrixXd> segment_vec;
 
-  Eigen::MatrixXd xy_data;
   std::string raw_data_path;
-  std::string raw_bin_path;
 
-  std::ifstream raw_bin_file;
-  bool raw_bin_open;
   bool is_xydata;
+
+protected:
+  std::chrono::system_clock::time_point current_time__;
+  std::string raw_bin_path__;
+  std::ifstream raw_bin_file__;
+  bool raw_bin_open__;
 };
 
 #endif
