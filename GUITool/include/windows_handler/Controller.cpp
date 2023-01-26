@@ -18,6 +18,7 @@
  */
 void AnimationController::transform_frame()
 {
+  max_frame = 0;
   std::ifstream infile(raw_data_path);
   if (infile.fail()) {
     std::cerr << "cant found " << raw_data_path << '\n';
