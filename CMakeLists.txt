@@ -121,7 +121,7 @@ target_link_libraries(
 )
 
 add_subdirectory(${THIRD_DIR})
-add_subdirectory(${PROJECT_SOURCE_DIR}/simulation)
+add_subdirectory(${PROJECT_SOURCE_DIR}/GUITool)
 
 # for ROS detection
 
