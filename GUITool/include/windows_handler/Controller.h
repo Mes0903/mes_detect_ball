@@ -45,9 +45,9 @@ public:
 
   std::string raw_data_path;
 
+protected:
   bool is_xydata;
 
-protected:
   std::chrono::system_clock::time_point current_time__;
   std::string raw_bin_path__;
   std::ifstream raw_bin_file__;

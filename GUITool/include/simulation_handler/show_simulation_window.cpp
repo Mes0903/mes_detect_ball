@@ -46,11 +46,6 @@ void ShowSimulationInformation()
 {
   if (ImGui::TreeNodeEx("Simulation Information")) {
     /*----------Load raw data----------*/
-    ImGui::Text("There are two data types, r-theta and xy data.\nTick the checkbox below if the raw data is xy data");
-    if (ImGui::Checkbox("Is xy data", &SC.is_xydata))
-      SC.update_frame = true;
-
-    ImGui::Text("");
     if (ImGui::Button("Load raw data"))
       ImGuiFileDialog::Instance()->OpenDialog("LoadSimulationRawData", "Choose your raw data", ".*", FileHandler::get_filepath() + "\\");
 

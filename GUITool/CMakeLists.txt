@@ -4,7 +4,7 @@ project(GUITool)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(SIMULATION_DIR ${PROJECT_SOURCE_DIR})
+set(GUITool ${PROJECT_SOURCE_DIR})
 
 find_package(OpenGL REQUIRED)
 
@@ -19,27 +19,27 @@ include_directories(
   ${THIRD_DIR}/imgui
   ${THIRD_DIR}/implot
   ${THIRD_DIR}/ImGuiFileDialog
-  ${SIMULATION_DIR}/include/
-  ${SIMULATION_DIR}/include/windows_handler
-  ${SIMULATION_DIR}/include/label_handler
-  ${SIMULATION_DIR}/include/simulation_handler
+  ${GUITool}/include/
+  ${GUITool}/include/windows_handler
+  ${GUITool}/include/label_handler
+  ${GUITool}/include/simulation_handler
 )
 
 add_executable(
   GUITool 
 
-  ${SIMULATION_DIR}/include/windows_handler/Controller.h
-  ${SIMULATION_DIR}/include/windows_handler/Controller.cpp
-  ${SIMULATION_DIR}/include/windows_handler/show_control_window.h
-  ${SIMULATION_DIR}/include/windows_handler/show_control_window.cpp
-  ${SIMULATION_DIR}/include/label_handler/LabelController.h
-  ${SIMULATION_DIR}/include/label_handler/LabelController.cpp
-  ${SIMULATION_DIR}/include/label_handler/show_label_window.h
-  ${SIMULATION_DIR}/include/label_handler/show_label_window.cpp
-  ${SIMULATION_DIR}/include/simulation_handler/SimulationController.h
-  ${SIMULATION_DIR}/include/simulation_handler/SimulationController.cpp
-  ${SIMULATION_DIR}/include/simulation_handler/show_simulation_window.h
-  ${SIMULATION_DIR}/include/simulation_handler/show_simulation_window.cpp
+  ${GUITool}/include/windows_handler/Controller.h
+  ${GUITool}/include/windows_handler/Controller.cpp
+  ${GUITool}/include/windows_handler/show_control_window.h
+  ${GUITool}/include/windows_handler/show_control_window.cpp
+  ${GUITool}/include/label_handler/LabelController.h
+  ${GUITool}/include/label_handler/LabelController.cpp
+  ${GUITool}/include/label_handler/show_label_window.h
+  ${GUITool}/include/label_handler/show_label_window.cpp
+  ${GUITool}/include/simulation_handler/SimulationController.h
+  ${GUITool}/include/simulation_handler/SimulationController.cpp
+  ${GUITool}/include/simulation_handler/show_simulation_window.h
+  ${GUITool}/include/simulation_handler/show_simulation_window.cpp
 
   ${PROJECT_HEADER}/file_handler.h
   ${PROJECT_HEADER}/file_handler.cpp
@@ -48,7 +48,7 @@ add_executable(
   ${PROJECT_HEADER}/metric.h
   ${PROJECT_HEADER}/metric.cpp
 
-  ${SIMULATION_DIR}/src/tool.cpp
+  ${GUITool}/src/tool.cpp
   ${MODEL_DIR}/normalize.h
   ${MODEL_DIR}/normalize.cpp
   ${MODEL_DIR}/adaboost/adaboost.h

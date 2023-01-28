@@ -19,43 +19,69 @@
 void AnimationController::transform_frame()
 {
   max_frame = 0;
-  std::ifstream infile(raw_data_path);
-  if (infile.fail()) {
-    std::cerr << "cant found " << raw_data_path << '\n';
-    std::cin.get();
-    exit(1);
-  }
-
-  std::ofstream outfile(raw_bin_path__, std::ios::binary);
-  if (outfile.fail()) {
-    std::cerr << "cant found " << raw_bin_path__ << '\n';
-    std::cin.get();
-    exit(1);
-  }
-
-  std::string line;
-  std::stringstream ss;
-  double x, y;
-  while (std::getline(infile, line)) {
-    ++max_frame;
-
-    ss << line;
-    ss >> x >> y;
-
-    outfile.write(reinterpret_cast<char *>(&x), sizeof(double));
-    outfile.write(reinterpret_cast<char *>(&y), sizeof(double));
-
-    ss.str("");
-    ss.clear();
-  }
-
-  max_frame /= HZ;
-  --max_frame;
 
   if (raw_bin_open__)
     raw_bin_file__.close();
   else
     raw_bin_open__ = true;
+
+
+  int r_buf[360] = {};
+  {
+    std::ifstream infile(raw_data_path);
+    if (infile.fail()) {
+      std::cerr << "cant found " << raw_data_path << '\n';
+      std::cin.get();
+      exit(1);
+    }
+
+    std::ofstream outfile(raw_bin_path__, std::ios::binary, std::ios::trunc);
+    if (outfile.fail()) {
+      std::cerr << "cant found " << raw_bin_path__ << '\n';
+      std::cin.get();
+      exit(1);
+    }
+
+    std::string line;
+    std::stringstream ss;
+    double x, y;
+    int theta_cnt = 0;
+
+    while (std::getline(infile, line)) {
+      ++max_frame;
+
+      ss << line;
+      ss >> x >> y;
+
+      if (theta_cnt < 360)
+        r_buf[theta_cnt++] = static_cast<int>(x * 10);
+
+      outfile.write(reinterpret_cast<char *>(&x), sizeof(double));
+      outfile.write(reinterpret_cast<char *>(&y), sizeof(double));
+
+      ss.str("");
+      ss.clear();
+    }
+  }
+
+  int theta1 = r_buf[0], theta2 = r_buf[1];
+  bool rtheta_data = true;
+  if (!(theta2 - theta1 == 5 || theta2 - theta1 == 10))
+    rtheta_data = false;
+
+  for (int i = 2; i < 360; ++i) {
+    theta1 = theta2;
+    theta2 = r_buf[i];
+
+    if (!(theta2 - theta1 == 5 || theta2 - theta1 == 10)) {
+      rtheta_data = false;
+      break;
+    }
+  }
+  is_xydata = !rtheta_data;
+
+  max_frame /= HZ;
+  --max_frame;
 
   raw_bin_file__.open(raw_bin_path__, std::ios::in | std::ios::binary);
   if (raw_bin_file__.fail()) {

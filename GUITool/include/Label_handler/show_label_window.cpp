@@ -44,11 +44,6 @@ static ImVec4 color_arr[] = { ImVec4(192 / 255.0, 238 / 255.0, 228 / 255.0, 1),
 void ShowLabelInformation()
 {
   if (ImGui::TreeNodeEx("Label Information")) {
-    ImGui::Text("There are two data types, r-theta and xy data.\nTick the checkbox below if the raw data is xy data");
-    if (ImGui::Checkbox("Is xy data", &LC.is_xydata))
-      LC.update_frame = true;
-
-    ImGui::Text("");
     /*----------Clearing Label Data----------*/
     if (ImGui::Button("Clearing Data"))
       ImGui::OpenPopup("Clean?");
@@ -282,6 +277,7 @@ void ShowLabelInformation()
     if (ImGui::Button("Save Label") ||
         ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl)) && ImGui::IsKeyDown(ImGuiKey_S)) ||
         ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && LC.enable_enter_save)) {
+      // avoid save too frequently
       if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - LC.current_save_time).count() > 100) {
         LC.current_save_time = std::chrono::system_clock::now();
         LC.save_label = true;

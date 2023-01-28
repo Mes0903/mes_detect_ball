@@ -33,6 +33,7 @@ public:
   void check_save_data();
 
   LabelController();
+  ~LabelController();
 
 public:
   bool save_label;
@@ -64,10 +65,13 @@ public:
   std::vector<int> feature_index_vec;
 
 private:
+  std::string tool_data_path__;
   std::string feature_bin_path__;
   std::string feature_num_bin_path__;
   std::string label_bin_path__;
   std::string label_num_bin_path__;
+  std::string buf_feature_path__;
+  std::string buf_label_path__;
 
   std::fstream feature_bin_file__;
   std::fstream feature_num_bin_file__;

@@ -63,10 +63,10 @@ include_directories(
   ${MODEL_DIR}/logistic
   ${THIRD_DIR}/imgui
   ${THIRD_DIR}/implot
-  ${SIMULATION_DIR}/include/
-  ${SIMULATION_DIR}/include/windows_handler
-  ${SIMULATION_DIR}/include/label_handler
-  ${SIMULATION_DIR}/include/simulation_handler
+  ${GUITool}/include/
+  ${GUITool}/include/windows_handler
+  ${GUITool}/include/label_handler
+  ${GUITool}/include/simulation_handler
 )
 
  

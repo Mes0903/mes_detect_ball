@@ -175,9 +175,8 @@ void LabelController::check_clean_data()
 
     frame = 0;
     xy_data = Eigen::MatrixXd::Zero(HZ, 2);
-    is_xydata = false;
     current_save_frame = -1;
-    writed_max_frame = 0;
+    writed_max_frame = -1;
     writed_frame_numbers = 0;
   }
 }
@@ -190,8 +189,9 @@ void LabelController::check_load_data()
   // load data
   if (load_data) {
     load_data = false;
-    transform_frame();
     clean_data = true;
+    check_clean_data();
+    transform_frame();
 
     // resize the information vector
     label_size_vec.resize(max_frame + 1);
@@ -238,12 +238,17 @@ void LabelController::check_update_frame()
  */
 void LabelController::check_save_data()
 {
+  if ((show_rect && auto_label) || (show_nearest && auto_label))
+    save_label = true;
+
   // save label
-  if (bool has_not_been_writed = (label_size_vec[frame] == 0);
-      has_not_been_writed &&
-      (save_label || (show_rect && auto_label) || (show_nearest && auto_label))) {
+  if (save_label) {
     save_label = false;
-    ++writed_frame_numbers;
+
+    // have bot been written
+    bool have_not_been_written = (label_size_vec[frame] == 0);
+    if (have_not_been_written)
+      ++writed_frame_numbers;
 
     // set the size of the frame
     feature_size_vec[frame] = feature_matrix.size() * sizeof(double);
@@ -270,20 +275,17 @@ void LabelController::check_save_data()
      *  |___B___| <- insert this |  |___C___|       _______   _______       |___B___| _______       |___B___|
      *  |___A___|                |  |___A___|      |___A___| |___C___|      |___A___||___C___|      |___A___|
      */
-    if (frame < writed_max_frame && has_not_been_writed) {
-      static const std::string tmp_feature_filepath = FileHandler::get_filepath() + "/dataset/binary_data/tmp_feature_buffer_data";
-      static const std::string tmp_label_filepath = FileHandler::get_filepath() + "/dataset/binary_data/tmp_lable_buffer_data";
-
-      std::fstream file_feature_buf(tmp_feature_filepath, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
-      if (file_feature_buf.fail()) {
-        std::cerr << "Cannot open file" << tmp_feature_filepath << '\n';
+    if (frame < writed_max_frame && have_not_been_written) {
+      std::fstream buf_feature_file(buf_feature_path__, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+      if (buf_feature_file.fail()) {
+        std::cerr << "Cannot open file" << buf_feature_path__ << '\n';
         std::cin.get();
         exit(1);
       }
 
-      std::fstream file_label_buf(tmp_label_filepath, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
-      if (file_label_buf.fail()) {
-        std::cerr << "Cannot open file" << tmp_label_filepath << '\n';
+      std::fstream buf_label_file(buf_label_path__, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+      if (buf_label_file.fail()) {
+        std::cerr << "Cannot open file" << buf_label_path__ << '\n';
         std::cin.get();
         exit(1);
       }
@@ -301,22 +303,22 @@ void LabelController::check_save_data()
           section_feature_buf.resize(feature_size_vec[sec_i] / sizeof(double));
           section_feature_buf.shrink_to_fit();
           feature_bin_file__.read(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // copy
-          file_feature_buf.write(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // and write
+          buf_feature_file.write(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // and write
 
           section_label_buf.resize(label_size_vec[sec_i] / sizeof(int));
           section_label_buf.shrink_to_fit();
           label_bin_file__.read(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // copy
-          file_label_buf.write(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // and write
+          buf_label_file.write(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // and write
 
           feature_index_vec[sec_i] += feature_size_vec[frame];    // add the offset of the data we will insert
           label_index_vec[sec_i] += label_size_vec[frame];    // add the offset of the data we will insert
         }
       }
 
-      file_feature_buf.flush();
-      file_label_buf.flush();
-      file_feature_buf.seekg(0, std::ios::beg);
-      file_label_buf.seekg(0, std::ios::beg);
+      buf_feature_file.flush();
+      buf_label_file.flush();
+      buf_feature_file.seekg(0, std::ios::beg);
+      buf_label_file.seekg(0, std::ios::beg);
 
       write_bin_feature_data__(feature_index, feature_matrix);
       write_bin_label_data__(label_index, segment_label);
@@ -325,12 +327,12 @@ void LabelController::check_save_data()
         if (feature_size_vec[sec_i] != 0) {
           section_feature_buf.resize(feature_size_vec[sec_i] / sizeof(double));
           section_feature_buf.shrink_to_fit();
-          file_feature_buf.read(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // copy
+          buf_feature_file.read(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // copy
           feature_bin_file__.write(reinterpret_cast<char *>(section_feature_buf.data()), feature_size_vec[sec_i]);    // and write
 
           section_label_buf.resize(label_size_vec[sec_i] / sizeof(int));
           section_label_buf.shrink_to_fit();
-          file_label_buf.read(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // copy
+          buf_label_file.read(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // copy
           label_bin_file__.write(reinterpret_cast<char *>(section_label_buf.data()), label_size_vec[sec_i]);    // and write
         }
       }
@@ -361,23 +363,51 @@ LabelController::LabelController() : AnimationController()
   load_data = false;
 
   current_save_frame = -1;
-  writed_max_frame = 0;
+  writed_max_frame = -1;
   writed_frame_numbers = 0;
   current_save_time = std::chrono::system_clock::now();
 
   label_mouse_area = static_cast<float>(0.05);
 
-  raw_data_path = FileHandler::get_filepath() + "\\dataset\\raw_data\\demo_train_xy.txt";
-  raw_bin_path__ = FileHandler::get_filepath() + "\\dataset\\binary_data\\label_using_raw_data_bin.txt";
+  tool_data_path__ = FileHandler::get_filepath() + "\\dataset\\binary_data\\MesTool.dat";
 
-  feature_output_path = FileHandler::get_filepath() + "\\dataset\\default_data\\default_feature_data.txt";
-  label_output_path = FileHandler::get_filepath() + "\\dataset\\default_data\\default_label_data.txt";
+  if (!std::filesystem::exists(tool_data_path__) || std::filesystem::file_size(tool_data_path__) == 0) {
+    std::ofstream tool_data_file__(tool_data_path__);    // just for creating file.
+    if (tool_data_file__.fail()) {
+      std::cerr << "cant open " << tool_data_path__ << '\n';
+      std::cin.get();
+      exit(1);
+    }
 
-  feature_bin_path__ = FileHandler::get_filepath() + "\\dataset\\binary_data\\feature_bin.txt";
-  feature_num_bin_path__ = FileHandler::get_filepath() + "\\dataset\\binary_data\\feature_num_bin.txt";
+    tool_data_file__ << FileHandler::get_filepath() + "\\dataset\\raw_data\\demo_train_xy.txt" << '\n'    // default raw_data_path
+                     << FileHandler::get_filepath() + "\\dataset\\binary_data\\label_using_raw_data_bin.txt" << '\n'    // default raw_bin_path__
+                     << FileHandler::get_filepath() + "\\dataset\\default_data\\default_feature_data.txt" << '\n'    // default feature_output_path
+                     << FileHandler::get_filepath() + "\\dataset\\default_data\\default_label_data.txt" << '\n'    // default label_output_path
+                     << FileHandler::get_filepath() + "\\dataset\\binary_data\\feature_bin.txt" << '\n'    // default feature_bin_path__
+                     << FileHandler::get_filepath() + "\\dataset\\binary_data\\feature_num_bin.txt" << '\n'    // default feature_num_bin_path__
+                     << FileHandler::get_filepath() + "\\dataset\\binary_data\\label_bin.txt" << '\n'    // default label_bin_path__
+                     << FileHandler::get_filepath() + "\\dataset\\binary_data\\label_num_bin.txt";    // default label_num_bin_path__
+  }
 
-  label_bin_path__ = FileHandler::get_filepath() + "\\dataset\\binary_data\\label_bin.txt";
-  label_num_bin_path__ = FileHandler::get_filepath() + "\\dataset\\binary_data\\label_num_bin.txt";
+  {
+    std::ifstream tool_data_file__(tool_data_path__);
+    if (tool_data_file__.fail()) {
+      std::cerr << "cant open " << tool_data_path__ << '\n';
+      std::cin.get();
+      exit(1);
+    }
+
+    std::getline(tool_data_file__, raw_data_path);
+    std::getline(tool_data_file__, raw_bin_path__);
+    std::getline(tool_data_file__, feature_output_path);
+    std::getline(tool_data_file__, label_output_path);
+    std::getline(tool_data_file__, feature_bin_path__);
+    std::getline(tool_data_file__, feature_num_bin_path__);
+    std::getline(tool_data_file__, label_bin_path__);
+    std::getline(tool_data_file__, label_num_bin_path__);
+    buf_feature_path__ = FileHandler::get_filepath() + "/dataset/binary_data/tmp_feature_buffer_data";
+    buf_label_path__ = FileHandler::get_filepath() + "/dataset/binary_data/tmp_lable_buffer_data";
+  }
 
   if (!std::filesystem::exists(feature_bin_path__)) std::ofstream create_file(feature_bin_path__);    // just for creating file.
   if (!std::filesystem::exists(feature_num_bin_path__)) std::ofstream create_file(feature_num_bin_path__);    // just for creating file.
@@ -411,7 +441,6 @@ LabelController::LabelController() : AnimationController()
     std::cin.get();
     exit(1);
   }
-
   transform_frame();
   label_size_vec.resize(max_frame + 1);
   label_index_vec.resize(max_frame + 1);
@@ -440,4 +469,26 @@ LabelController::LabelController() : AnimationController()
       }
     }
   }
+}
+
+LabelController::~LabelController()
+{
+  std::filesystem::remove(buf_feature_path__);
+  std::filesystem::remove(buf_label_path__);
+
+  std::ofstream tool_data_file__(tool_data_path__);
+  if (tool_data_file__.fail()) {
+    std::cerr << "cant open " << tool_data_path__ << '\n';
+    std::cin.get();
+    exit(1);
+  }
+
+  tool_data_file__ << raw_data_path << '\n'
+                   << raw_bin_path__ << '\n'
+                   << feature_output_path << '\n'
+                   << label_output_path << '\n'
+                   << feature_bin_path__ << '\n'
+                   << feature_num_bin_path__ << '\n'
+                   << label_bin_path__ << '\n'
+                   << label_num_bin_path__;
 }
