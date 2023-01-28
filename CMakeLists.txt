@@ -70,8 +70,8 @@ include_directories(
 )
 
  
-add_executable(Training_Ball
-  ./src/training_ball.cpp
+add_executable(Training
+  ./src/training.cpp
 
   ${PROJECT_HEADER}/file_handler.h
   ${PROJECT_HEADER}/file_handler.cpp
@@ -90,32 +90,7 @@ add_executable(Training_Ball
 )
 
 target_link_libraries(
-  Training_Ball
-  ${catkin_LIBRARIES}
-  ${Eigen3_LIBRARIES}
-)
-
-add_executable(Training_Box
-  ./src/training_box.cpp
-
-  ${PROJECT_HEADER}/file_handler.h
-  ${PROJECT_HEADER}/file_handler.cpp
-  ${PROJECT_HEADER}/make_feature.h
-  ${PROJECT_HEADER}/make_feature.cpp
-  ${PROJECT_HEADER}/metric.h
-  ${PROJECT_HEADER}/metric.cpp
-
-  ${MODEL_DIR}/normalize.h
-  ${MODEL_DIR}/normalize.cpp
-  ${MODEL_DIR}/adaboost/adaboost.h
-  ${MODEL_DIR}/logistic/logistic.h
-  ${MODEL_DIR}/logistic/logistic.cpp
-
-  $<$<BOOL:${WIN32}>: ${APP_ICON_RESOURCE_WINDOWS}>
-)
-
-target_link_libraries(
-  Training_Box
+  Training
   ${catkin_LIBRARIES}
   ${Eigen3_LIBRARIES}
 )
