@@ -7,6 +7,8 @@
  */
 
 #include "logistic.h"
+#include "Eigen/Eigen"
+
 #include <vector>
 #include <iostream>
 #include <algorithm>
@@ -14,7 +16,6 @@
 #include <random>
 #include <fstream>
 #include <sstream>
-#include <Eigen/Eigen>
 
 constexpr uint32_t FEATURE_NUM = 10;
 

@@ -12,10 +12,10 @@
 #ifndef LABEL_CONTROLLER_H__
 #define LABEL_CONTROLLER_H__
 
+#include "Eigen/Eigen"
 #include "Controller.h"
 
 #include <vector>
-#include <Eigen/Eigen>
 
 struct LabelController : public AnimationController {
 public:

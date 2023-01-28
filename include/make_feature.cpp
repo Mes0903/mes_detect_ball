@@ -8,11 +8,11 @@
 
 #include "make_feature.h"
 #include "metric.h"
+#include "Eigen/Eigen"
 
 #include <vector>
 #include <utility>
 #include <cmath>
-#include <Eigen/Eigen>
 
 namespace MakeFeatures {
 

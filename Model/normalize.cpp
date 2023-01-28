@@ -10,9 +10,9 @@
  */
 
 #include "normalize.h"
+#include "Eigen/Eigen"
 
 #include <iostream>
-#include <Eigen/Eigen>
 #include <fstream>
 
 #define CLEAN_STREAM \

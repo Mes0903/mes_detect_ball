@@ -9,10 +9,11 @@
  * @date 2022-11-17
  */
 
+#include "Eigen/Eigen"
+
 #include <vector>
 #include <utility>
 #include <cmath>
-#include <Eigen/Eigen>
 
 constexpr int FEATURE_NUM = 10;
 

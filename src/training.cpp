@@ -13,9 +13,9 @@
 #include "normalize.h"
 #include "file_handler.h"
 #include "metric.h"
+#include "Eigen/Dense"
 
 #include <iostream>
-#include <Eigen/Dense>
 #include <limits>
 
 int main([[maybe_unused]] int argc, char **argv)

@@ -10,7 +10,8 @@
  */
 
 #include "normalize.h"
-#include <Eigen/Eigen>
+#include "Eigen/Eigen"
+
 #include <string>
 #include <fstream>
 #include <iostream>

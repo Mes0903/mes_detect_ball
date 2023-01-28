@@ -7,10 +7,10 @@
  */
 
 #include "metric.h"
+#include "Eigen/Eigen"
 
 #include <tuple>
 #include <cmath>
-#include <Eigen/Eigen>
 
 #if _WIN32
 #define _USE_MATH_DEFINES

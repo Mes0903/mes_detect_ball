@@ -9,9 +9,10 @@
  * @date 2022-11-18
  */
 
+#include "Eigen/Eigen"
+
 #include <tuple>
 #include <cmath>
-#include <Eigen/Eigen>
 
 namespace metric {
   /**

@@ -10,20 +10,21 @@
  */
 
 #include "normalize.h"
+#include "Eigen/Eigen"
+
 #include <vector>
 #include <cmath>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <Eigen/Eigen>
 
 
 #if __cplusplus >= 202002L
 
 /**
-     * @brief Check if the weight in class can be stored.
-     * @param ins The instance of the class.
-     */
+ * @brief Check if the weight in class can be stored.
+ * @param ins The instance of the class.
+ */
 template <typename Model>
 concept has_fit = requires(Model ins, const Eigen::MatrixXd &train_X, const Eigen::VectorXd &train_Y, int Iterations, const Eigen::MatrixXd &train_weight)
 {
@@ -33,8 +34,8 @@ concept has_fit = requires(Model ins, const Eigen::MatrixXd &train_X, const Eige
 };
 
 /**
-     * @param ins The instance of the class.
-     */
+ * @param ins The instance of the class.
+ */
 template <typename Model>
 concept has_predict = requires(Model ins, const std::string &filepath, std::ifstream &infile)
 {
@@ -53,7 +54,8 @@ concept valid_Model = has_fir<Module> && has_predict<Module>;
  * @brief Check if the class has `fit` function
  */
 template <typename, typename = void>
-struct has_fit : std::false_type {};
+struct has_fit : std::false_type {
+};
 
 template <typename Model>
 struct has_fit<Model, std::void_t<decltype(&Model::fit)> >
@@ -63,23 +65,27 @@ struct has_fit<Model, std::void_t<decltype(&Model::fit)> >
                           const Eigen::MatrixXd &,
                           const Eigen::VectorXd &,
                           const Eigen::MatrixXd &,
-                          int> {};
+                          int> {
+};
 
 /**
  * @brief Check if the class has `predict` function.
  */
 template <typename, typename = void>
-struct has_predict : std::false_type {};
+struct has_predict : std::false_type {
+};
 
 template <typename Model>
 struct has_predict<Model, std::void_t<decltype(&Model::predict)> >
     : std::is_invocable_r<Eigen::VectorXd,
                           decltype(&Model::predict),
                           Model &,
-                          const Eigen::MatrixXd &> {};
+                          const Eigen::MatrixXd &> {
+};
 
 template <typename Model>
-struct valid_Model : std::conjunction<has_fit<Model>, has_predict<Model> > {};
+struct valid_Model : std::conjunction<has_fit<Model>, has_predict<Model> > {
+};
 
 template <typename Model>
 constexpr bool valid_Model_v = valid_Model<Model>::value;

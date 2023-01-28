@@ -10,7 +10,6 @@ endif()
 
 # On windwos, it need the compile flag -I\"D:\\Eigen\", in linux it can find package
 if(WIN32)
-  set(EIGEN3_INCLUDE_DIRS D:/Eigen) # SET UR EIGEN Directory
   if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     find_package(OpenGL REQUIRED)
     MESSAGE("==================== USING MSVC TO COMILE ====================")
@@ -56,11 +55,11 @@ set(THIRD_DIR ${PROJECT_SOURCE_DIR}/3rdparty)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIRS}
   ${PROJECT_HEADER}
   ${MODEL_DIR}
   ${MODEL_DIR}/adaboost
   ${MODEL_DIR}/logistic
+  ${THIRD_DIR}/Eigen
   ${THIRD_DIR}/imgui
   ${THIRD_DIR}/implot
   ${GUITool}/include/
