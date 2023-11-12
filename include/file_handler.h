@@ -9,7 +9,6 @@
  * @date 2022-11-18
  */
 
-#include "normalize.h"
 #include "Eigen/Eigen"
 
 #include <string>
@@ -65,7 +64,7 @@ namespace FileHandler {
    * @param filepath the executable file path, which is argv[0].
    * @return std::string The project directory path
    */
-  std::string get_filepath();
+  std::string get_MRL_project_root();
 
   namespace detail {
 #if __cplusplus >= 202002L
@@ -74,22 +73,20 @@ namespace FileHandler {
      * @param ins The instance of the class.
      */
     template <typename T>
-    concept can_store = requires(T &ins, const std::string &filepath, std::ofstream &outfile)
-    {
+    concept can_store = requires(T &ins, std::ofstream &outfile) {
       {
-        ins.store_weight(filepath, outfile)
-        } -> void;    // ok WTF clang-format...
+        ins.store_weight(outfile)
+      } -> std::same_as<void>;    // ok WTF clang-format...
     };
 
     /**
      * @param ins The instance of the class.
      */
     template <typename T>
-    concept can_load = requires(T &ins, const std::string &filepath, std::ifstream &infile)
-    {
+    concept can_load = requires(T &ins, std::ifstream &infile) {
       {
-        ins.load_weight(filepath, infile)
-        } -> void;
+        ins.load_weight(infile)
+      } -> std::same_as<void>;
     };
 
     /**
@@ -100,9 +97,10 @@ namespace FileHandler {
      * @param first The head of parameter pack, a class instance.
      */
     template <typename T>
-    void store_weight_impl(const std::string &filepath, std::ofstream &outfile, T &ins) requires can_store<T>    // Check if the instance implemented the `store_weight` method by Detection Idioms(Concept requires)
+    void store_weight_impl(std::ofstream &outfile, T &ins)
+      requires can_store<T>    // Check if the instance implemented the `store_weight` method by Detection Idioms(Concept requires)
     {
-      ins.store_weight(filepath, outfile);
+      ins.store_weight(outfile);
     }
 
     /**
@@ -113,9 +111,10 @@ namespace FileHandler {
      * @param first The head of parameter pack, a class instance.
      */
     template <typename T>
-    void load_weight_impl(const std::string &filepath, std::ifstream &infile, T &ins) requires can_load<T>    // Check if the instance implemented the `load_weight` method by Detection Idioms(Concept requires)
+    void load_weight_impl(std::ifstream &infile, T &ins)
+      requires can_load<T>    // Check if the instance implemented the `load_weight` method by Detection Idioms(Concept requires)
     {
-      ins.load_weight(filepath, infile);
+      ins.load_weight(infile);
     }
 
 #else
@@ -124,34 +123,28 @@ namespace FileHandler {
      * @brief Check if the weight in class can be stored.
      */
     template <typename, typename = void>
-    struct can_store : std::false_type {
-    };
+    struct can_store : std::false_type {};
 
     template <typename T>
     struct can_store<T, std::void_t<decltype(&T::store_weight)> >
         : std::is_invocable_r<void,
                               decltype(&T::store_weight),
                               T &,
-                              const std::string,
-                              std::ofstream &> {
-    };
+                              std::ofstream &> {};
 
 
     /**
      * @brief Check if the weight in class can be loaded.
      */
     template <typename, typename = void>
-    struct can_load : std::false_type {
-    };
+    struct can_load : std::false_type {};
 
     template <typename T>
     struct can_load<T, std::void_t<decltype(&T::load_weight)> >
         : std::is_invocable_r<void,
                               decltype(&T::load_weight),
                               T &,
-                              const std::string,
-                              std::ifstream &> {
-    };
+                              std::ifstream &> {};
 
 
     /**
@@ -163,9 +156,9 @@ namespace FileHandler {
      */
     template <typename T,
               typename std::enable_if<can_store<T>::value>::type * = nullptr>
-    void store_weight_impl(const std::string &filepath, std::ofstream &outfile, T &ins)
+    void store_weight_impl(std::ofstream &outfile, T &ins)
     {
-      ins.store_weight(filepath, outfile);
+      ins.store_weight(outfile);
     }
 
     /**
@@ -177,9 +170,9 @@ namespace FileHandler {
      */
     template <typename T,
               typename std::enable_if<can_load<T>::value>::type * = nullptr>
-    void load_weight_impl(const std::string &filepath, std::ifstream &infile, T &ins)
+    void load_weight_impl(std::ifstream &infile, T &ins)
     {
-      ins.load_weight(filepath, infile);
+      ins.load_weight(infile);
     }
 
 #endif
@@ -193,17 +186,17 @@ namespace FileHandler {
      * @param instances Class instances pack.
      */
     template <typename T, typename... A>
-    void store_weight_impl(const std::string &filepath, std::ofstream &outfile, T &first, A &...instances)
+    void store_weight_impl(std::ofstream &outfile, T &first, A &...instances)
     {
-      store_weight_impl(filepath, outfile, first);
-      store_weight_impl(filepath, outfile, instances...);
+      store_weight_impl(outfile, first);
+      store_weight_impl(outfile, instances...);
     }
 
     template <typename T, typename... A>
-    void load_weight_impl(const std::string &filepath, std::ifstream &infile, T &first, A &...instances)
+    void load_weight_impl(std::ifstream &infile, T &first, A &...instances)
     {
-      load_weight_impl(filepath, infile, first);
-      load_weight_impl(filepath, infile, instances...);
+      load_weight_impl(infile, first);
+      load_weight_impl(infile, instances...);
     }
   }    // namespace detail
 
@@ -252,8 +245,7 @@ namespace FileHandler {
 
     // compact F1 Score
     if (F1_Score <= old_F1_Score) {
-      std::cerr << "This weight won't be saved since its F1 Score is not better than the original one\n";
-      std::cin.get();
+      std::cout << "This weight won't be saved since its F1 Score is not better than the original one\n";
       return;
     }
 
@@ -264,7 +256,7 @@ namespace FileHandler {
       exit(1);
     }
 
-    detail::store_weight_impl(filepath, outfile, instances...);
+    detail::store_weight_impl(outfile, instances...);
 
     outfile.close();
   }
@@ -285,7 +277,7 @@ namespace FileHandler {
       exit(1);
     }
 
-    detail::load_weight_impl(filepath, infile, instances...);
+    detail::load_weight_impl(infile, instances...);
 
     infile.close();
   }

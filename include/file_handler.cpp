@@ -116,13 +116,13 @@ namespace FileHandler {
    *
    * @return std::string The project directory path
    */
-  std::string get_filepath()
+  std::string get_MRL_project_root()
   {
     namespace fs = std::filesystem;
 
     fs::path current = fs::current_path();
 
-    while (current.filename().string() != "mes_detect_ball")
+    while (current.filename().string() != "MRL_LabelTool")
       current = current.parent_path();
 
     return current.string();
