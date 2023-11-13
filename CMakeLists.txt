@@ -7,12 +7,12 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
   
-set(PROJECT_HEADER ${CMAKE_SOURCE_DIR}/include)
-set(RVIZ_DIR ${CMAKE_SOURCE_DIR}/rviz)
-set(MODEL_DIR ${CMAKE_SOURCE_DIR}/Model)
-set(EIGEN3_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/3rdparty/Eigen)
+set(PROJECT_HEADER ${CMAKE_SOURCE_DIR}/DS_Detect/include)
+set(RVIZ_DIR ${CMAKE_SOURCE_DIR}/DS_Detect/rviz)
+set(MODEL_DIR ${CMAKE_SOURCE_DIR}/DS_Detect/Model)
+set(EIGEN3_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/DS_Detect/3rdparty/Eigen)
 
-set(TRAINING_DIR ${CMAKE_SOURCE_DIR}/Training)
+set(TRAINING_DIR ${CMAKE_SOURCE_DIR}/DS_Detect/Training)
 
 add_subdirectory(${TRAINING_DIR})
 add_subdirectory(${RVIZ_DIR})

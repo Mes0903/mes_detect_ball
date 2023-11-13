@@ -21,15 +21,22 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES mes_detect_ball
   CATKIN_DEPENDS roscpp rospy std_msgs
   DEPENDS EIGEN3
 )
 
 add_executable(Detect_node
-  ./src/detect_node.cpp
-  ${CLASS_DEF}
+  ./detect_node.cpp
+)
+
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
+  ${THIRD_PARTY_DIR}
+  ../include
+  ../Model
+  ../Model/adaboost
+  ../Model/logistic
 )
 
 target_link_libraries(

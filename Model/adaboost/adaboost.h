@@ -21,9 +21,6 @@
 #include <sstream>
 
 class Adaboost {
-#if __cplusplus < 202002L
-  static_assert(valid_Model_v<logistic>, "The logistic didn't fit the requires of predict function or fit function");
-#endif
 
 public:
   int TN{}, TP{}, FN{}, FP{};

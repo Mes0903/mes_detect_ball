@@ -18,7 +18,7 @@
 #include "make_feature.h"
 #include "adaboost.h"
 #include "logistic.h"
-#include "segment.h"
+
 #include "normalize.h"
 #include "file_handler.h"
 
@@ -26,8 +26,8 @@
 #include <Eigen/Dense>
 #include <limits>
 
-Adaboost A_ball, A_box;
-Normalizer normalizer_ball, normalizer_box;
+Adaboost A_ball;//, A_box;
+Normalizer normalizer_ball;//, normalizer_box;
 
 visualization_msgs::Marker marker;
 ros::Publisher markerArray_pub;
@@ -88,33 +88,18 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan)
   }
 
   // 切分段
-  auto [feature_matrix, segment_vec] = section_to_feature(data);    // segment_vec is std::vector<Eigen::MatrixXd>
+  auto [feature_matrix, segment_vec] = MakeFeatures::section_to_feature(data);    // segment_vec is std::vector<Eigen::MatrixXd>
 
   Eigen::MatrixXd feature_matrix_ball = normalizer_ball.transform(feature_matrix);
-  Eigen::MatrixXd feature_matrix_box = normalizer_box.transform(feature_matrix);
+  //Eigen::MatrixXd feature_matrix_box = normalizer_box.transform(feature_matrix);
 
   // prediction
-  Eigen::VectorXd pred_Y_box = A_box.predict(feature_matrix_box);    // input 等等是 xy，所以要轉 feature
+  //Eigen::VectorXd pred_Y_box = A_box.predict(feature_matrix_box);    // input 等等是 xy，所以要轉 feature
   Eigen::VectorXd pred_Y_ball = A_ball.predict(feature_matrix_ball);    // input 等等是 xy，所以要轉 feature
   bool detect_flag = false;
 
   for (std::size_t i = 0; i < segment_vec.size(); ++i) {
-    if (pred_Y_box(i) == 1) {
-      detect_flag = true;
 
-      const Eigen::MatrixXd &M = segment_vec[i].colwise().mean();
-
-      if (std::sqrt(std::pow(M(0, 0), 2) + std::pow(M(0, 1), 2)) < 1.5) {
-        std::cout << "Box is at: [" << M(0, 0) << ", " << M(0, 1) << "]\n";
-
-        marker.pose.position.x = M(0, 0);
-        marker.pose.position.y = M(0, 1);
-        marker.ns = "Detected_box";
-        marker.type = visualization_msgs::Marker::CUBE;
-        marker.header.stamp = scan->header.stamp;
-        markerArray.markers.push_back(marker);
-      }
-    }
 
     if (pred_Y_ball(i) == 1) {
       detect_flag = true;
@@ -147,10 +132,8 @@ int main([[maybe_unused]] int argc, char **argv)
 {
   std::cout << "Detect Ball Node wake up\n";
 
-  const std::string filepath = get_filepath(argv[0]);
-
-  Weight_handle::load_weight(filepath + "/include/weight_data/adaboost_ball_weight.txt", A_ball, normalizer_ball);
-  Weight_handle::load_weight(filepath + "/include/weight_data/adaboost_box_weight.txt", A_box, normalizer_box);
+  FileHandler::load_weight("/home/hypharos/catkin_ws/src/DS_Detect/dataset/weight_data", A_ball, normalizer_ball);
+  //FileHandler::load_weight(filepath + "/include/weight_data/adaboost_box_weight.txt", A_box, normalizer_box);
 
   ros::init(argc, argv, "Detection_Nodes");
 
